@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Métré Façade Pro - Cotation & Dictée Vocale</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      touch-action: none; /* Empêche le défilement natif sur le canvas */
+    }
+    
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 1);
+    }
+
+    /* Pulse animation pour l'enregistrement vocal */
+    @keyframes mic-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .mic-recording {
+      animation: mic-pulse 1.3s infinite;
+      background-color: #ef4444 !important;
+      color: white !important;
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printReport, #printReport * {
+        visibility: visible;
+      }
+      #printReport {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        display: block !important;
+        background: white !important;
+        color: black !important;
+      }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden select-none">
+
+  <!-- BARRE DE NAVIGATION SUPÉRIEURE -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-3 sm:px-4 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-amber-500/20">
+        <i class="ph-bold ph-ruler text-xl"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-sm sm:text-base leading-tight tracking-tight text-white flex items-center gap-2">
+          Métré Façade Pro
+          <span class="text-[10px] bg-amber-400/10 text-amber-400 border border-amber-400/20 px-1.5 py-0.5 rounded font-mono font-medium">BTP / ITE</span>
+        </h1>
+        <p class="text-[10px] text-slate-400 hidden sm:block">Relevé de cotes technique & dictée vocale</p>
+      </div>
+    </div>
+
+    <!-- Actions rapides en entête -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <!-- Input photo caméra -->
+      <label class="cursor-pointer flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition-all">
+        <i class="ph-bold ph-camera text-base"></i>
+        <span class="hidden md:inline">Photo</span>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+      </label>
+
+      <!-- Input fichier galerie -->
+      <label class="cursor-pointer flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition-all">
+        <i class="ph-bold ph-folder-open text-base"></i>
+        <span class="hidden md:inline">Importer</span>
+        <input type="file" id="fileInput" accept="image/*" class="hidden">
+      </label>
+
+      <!-- Bouton Réinitialiser le zoom -->
+      <button id="btnResetView" title="Recentrer la vue" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 text-base">
+        <i class="ph-bold ph-arrows-out"></i>
+      </button>
+
+      <!-- Bouton Exporter image cotée -->
+      <button id="btnExportImage" class="flex items-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition-all">
+        <i class="ph-bold ph-download-simple text-base"></i>
+        <span class="hidden sm:inline">Image Cotée</span>
+      </button>
+
+      <!-- Bouton Volet Métré (Mobile toggle) -->
+      <button id="btnToggleSidebar" class="lg:hidden p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg border border-slate-700 text-base relative">
+        <i class="ph-bold ph-clipboard-text"></i>
+        <span id="badgeCountMobile" class="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENEUR PRINCIPAL -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- BARRE D'OUTILS FLOTTANTE GAUCHE (Gabarits & Outils) -->
+    <aside class="absolute left-3 top-3 bottom-3 z-20 flex flex-col justify-between pointer-events-none w-12 sm:w-auto">
+      <div class="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-2xl shadow-2xl flex flex-col gap-1.5 pointer-events-auto">
+        <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:block">Modèles</div>
+        
+        <!-- Pignon classique 3 hauteurs -->
+        <button id="btnModelPignon" title="Gabarit Pignon (3 Hauteurs + Largeur base)" class="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 transition-all">
+          <i class="ph-bold ph-house-line text-lg text-amber-400 group-hover:text-slate-950"></i>
+          <span class="hidden sm:inline">Pignon (3H)</span>
+        </button>
+
+        <!-- Façade rectangulaire standard -->
+        <button id="btnModelFacade" title="Gabarit Façade rectangulaire (Largeur + Hauteur)" class="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 transition-all">
+          <i class="ph-bold ph-rectangle text-lg text-amber-400 group-hover:text-slate-950"></i>
+          <span class="hidden sm:inline">Façade plate</span>
+        </button>
+
+        <!-- Ouverture / Fenêtre -->
+        <button id="btnAddWindow" title="Ajouter une Fenêtre (Cadre + Cotes L x H)" class="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-cyan-500 hover:text-slate-950 transition-all">
+          <i class="ph-bold ph-frame-corners text-lg text-cyan-400 group-hover:text-slate-950"></i>
+          <span class="hidden sm:inline">+ Fenêtre</span>
+        </button>
+
+        <!-- Porte d'entrée -->
+        <button id="btnAddDoor" title="Ajouter une Porte" class="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-cyan-500 hover:text-slate-950 transition-all">
+          <i class="ph-bold ph-door text-lg text-cyan-400 group-hover:text-slate-950"></i>
+          <span class="hidden sm:inline">+ Porte</span>
+        </button>
+
+        <!-- Flèche de mesure personnalisée -->
+        <button id="btnAddFreeMeasure" title="Tracer une flèche personnalisée libre" class="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-emerald-500 hover:text-slate-950 transition-all">
+          <i class="ph-bold ph-arrows-left-right text-lg text-emerald-400 group-hover:text-slate-950"></i>
+          <span class="hidden sm:inline">Cote Libre</span>
+        </button>
+
+        <!-- Cheminée / Lucarne -->
+        <button id="btnAddChimney" title="Ajouter Cheminée / Décroché" class="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 transition-all">
+          <i class="ph-bold ph-squares-four text-lg text-amber-400 group-hover:text-slate-950"></i>
+          <span class="hidden sm:inline">+ Cheminée</span>
+        </button>
+      </div>
+
+      <!-- Contrôles de Zoom Tactiles -->
+      <div class="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-2xl shadow-2xl flex flex-col gap-1.5 pointer-events-auto">
+        <button id="btnZoomIn" title="Zoomer" class="p-2 sm:px-2.5 sm:py-2 rounded-xl text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 flex justify-center items-center">
+          <i class="ph-bold ph-plus text-base"></i>
+        </button>
+        <button id="btnZoomOut" title="Dézoomer" class="p-2 sm:px-2.5 sm:py-2 rounded-xl text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 flex justify-center items-center">
+          <i class="ph-bold ph-minus text-base"></i>
+        </button>
+        <button id="btnDeleteSelected" title="Supprimer l'élément sélectionné" class="p-2 sm:px-2.5 sm:py-2 rounded-xl text-rose-400 hover:text-rose-100 bg-rose-950/40 hover:bg-rose-600 flex justify-center items-center transition-all">
+          <i class="ph-bold ph-trash text-base"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ZONE CENTRALE : CANVAS INTERACTIF -->
+    <main class="flex-1 h-full w-full relative bg-slate-950 overflow-hidden flex items-center justify-center">
+      <!-- Toile Canvas -->
+      <canvas id="viewportCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+      <!-- Placeholder d'accueil quand aucune photo n'est chargée -->
+      <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/80 backdrop-blur-sm pointer-events-none transition-opacity duration-300">
+        <div class="w-20 h-20 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-amber-400 mb-4 shadow-xl">
+          <i class="ph-duotone ph-camera-plus text-4xl"></i>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Prenez ou importez une photo de la façade</h2>
+        <p class="text-xs sm:text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+          Prenez une photo bien de face. L'outil disposera les flèches de mesure prêtes à être ajustées sur les angles et renseignées à la voix ou au clavier.
+        </p>
+        <div class="flex flex-wrap gap-3 justify-center pointer-events-auto">
+          <label class="cursor-pointer flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all text-sm">
+            <i class="ph-bold ph-camera text-lg"></i>
+            Prendre la photo
+            <input type="file" id="emptyStateCamera" accept="image/*" capture="environment" class="hidden">
+          </label>
+          <label class="cursor-pointer flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-xl border border-slate-700 active:scale-95 transition-all text-sm">
+            <i class="ph-bold ph-image text-lg"></i>
+            Choisir une image
+            <input type="file" id="emptyStateUpload" accept="image/*" class="hidden">
+          </label>
+          <button id="btnLoadSample" class="flex items-center gap-2 bg-slate-800/60 hover:bg-slate-800 text-cyan-300 font-medium px-3.5 py-2.5 rounded-xl border border-cyan-500/30 text-xs transition-all">
+            <i class="ph-bold ph-sparkle"></i> Charger un exemple de façade
+          </button>
+        </div>
+      </div>
+
+      <!-- Pop-up d'édition rapide au clic sur une cote dans le canvas -->
+      <div id="quickEditPopup" class="absolute hidden z-30 bg-slate-900/95 border border-amber-400/50 p-2.5 rounded-2xl shadow-2xl backdrop-blur-md flex flex-col gap-2 min-w-[200px] transform -translate-x-1/2 -translate-y-full mb-3">
+        <div class="flex items-center justify-between">
+          <span id="popupLabel" class="text-[11px] font-bold text-amber-400 tracking-wide uppercase truncate max-w-[140px]">Cote</span>
+          <button id="btnClosePopup" class="text-slate-400 hover:text-white text-xs p-1">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <input type="text" id="popupValueInput" placeholder="ex: 6.45 m" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm font-mono font-bold text-white focus:outline-none focus:border-amber-400">
+          <button id="btnVoicePopup" title="Dicter la mesure à voix haute" class="w-9 h-9 flex items-center justify-center bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-lg transition-all active:scale-95 shrink-0">
+            <i class="ph-bold ph-microphone"></i>
+          </button>
+        </div>
+        <div class="flex justify-between items-center text-[10px] text-slate-400">
+          <span>Dites : "6 mètres 40"</span>
+          <button id="btnSavePopup" class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-semibold hover:bg-amber-500/30">Valider</button>
+        </div>
+      </div>
+
+      <!-- Notification de statut vocal -->
+      <div id="voiceStatusBadge" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-red-600/90 text-white font-medium text-xs px-4 py-1.5 rounded-full shadow-lg backdrop-blur flex items-center gap-2 z-40 pointer-events-none">
+        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+        <span id="voiceStatusText">Écoute en cours... parlez !</span>
+      </div>
+    </main>
+
+    <!-- VOLET LATÉRAL DROIT : FEUILLE DE MÉTRÉ & CALCULS -->
+    <aside id="sidebarPanel" class="w-80 lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col h-full z-20 transition-all duration-300 fixed inset-y-0 right-0 translate-x-full lg:static lg:translate-x-0 shadow-2xl lg:shadow-none">
+      
+      <!-- En-tête du volet -->
+      <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="ph-bold ph-clipboard-text text-amber-400 text-xl"></i>
+          <h2 class="font-bold text-sm text-white">Feuille de Métré</h2>
+          <span id="badgeCotesCount" class="text-xs bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full font-mono">0 cote</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button id="btnPrintReport" title="Imprimer le métré / Export PDF" class="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg transition-all text-base">
+            <i class="ph-bold ph-printer"></i>
+          </button>
+          <button id="btnCloseSidebar" class="lg:hidden p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-base">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Informations Chantier rapides -->
+      <div class="p-3 bg-slate-950/60 border-b border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <label class="block text-[10px] text-slate-400 font-semibold mb-0.5 uppercase">Chantier / Réf</label>
+          <input type="text" id="inputClientName" value="Façade Ouest - Dupont" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
+        </div>
+        <div>
+          <label class="block text-[10px] text-slate-400 font-semibold mb-0.5 uppercase">Date</label>
+          <input type="text" id="inputChantierDate" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs font-mono focus:outline-none focus:border-amber-400">
+        </div>
+      </div>
+
+      <!-- Liste scrollable des cotes -->
+      <div id="measuresListContainer" class="flex-1 overflow-y-auto p-3 space-y-2.5">
+        <!-- Rempli dynamiquement -->
+        <div id="measuresEmptyState" class="text-center py-10 text-slate-500 text-xs">
+          <i class="ph-duotone ph-ruler text-3xl mb-2 text-slate-600 block"></i>
+          Aucune flèche ou cote pour le moment.<br>Sélectionnez un gabarit à gauche pour commencer.
+        </div>
+      </div>
+
+      <!-- Résumé des surfaces estimées (si cotes renseignées) -->
+      <div class="p-3.5 bg-slate-950 border-t border-slate-800 shrink-0">
+        <div class="flex items-center justify-between text-xs mb-1.5">
+          <span class="text-slate-400 font-medium">Surface brute estimée :</span>
+          <span id="surfaceBruteText" class="font-mono font-bold text-slate-200">-- m²</span>
+        </div>
+        <div class="flex items-center justify-between text-xs mb-1.5">
+          <span class="text-slate-400 font-medium">Déduction ouvertures :</span>
+          <span id="surfaceOuverturesText" class="font-mono text-rose-400">- 0.00 m²</span>
+        </div>
+        <div class="flex items-center justify-between text-sm pt-2 border-t border-slate-800 font-bold">
+          <span class="text-amber-400 flex items-center gap-1.5">
+            <i class="ph-fill ph-paint-roller"></i> Surface nette ravalement / ITE :
+          </span>
+          <span id="surfaceNetteText" class="font-mono text-amber-400 text-base">-- m²</span>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- MODAL / CONTENU IMPRIMABLE (Pour impression PDF) -->
+  <div id="printReport" class="hidden p-8 bg-white text-slate-900 max-w-4xl mx-auto">
+    <div class="border-b-2 border-slate-900 pb-4 mb-6 flex justify-between items-end">
+      <div>
+        <h1 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Fiche de Métré & Cotation Façade</h1>
+        <p class="text-sm text-slate-600">Relevé technique d'exécution pour ravalement, ITE et menuiseries</p>
+      </div>
+      <div class="text-right text-xs text-slate-600">
+        <p><strong class="text-slate-900">Réf :</strong> <span id="printChantierRef">Façade Ouest</span></p>
+        <p><strong class="text-slate-900">Date :</strong> <span id="printChantierDate">--</span></p>
+      </div>
+    </div>
+
+    <!-- Image cotée insérée à l'impression -->
+    <div class="mb-6 border border-slate-300 rounded-lg p-2 flex justify-center bg-slate-50">
+      <img id="printCanvasImg" class="max-h-96 object-contain rounded" alt="Plan de façade coté">
+    </div>
+
+    <!-- Tableau récapitulatif -->
+    <h2 class="text-sm font-bold uppercase tracking-wider mb-2 text-slate-800 border-b pb-1">Détail des cotes relevées</h2>
+    <table class="w-full text-left text-xs mb-6 border-collapse">
+      <thead>
+        <tr class="border-b-2 border-slate-300 bg-slate-100 text-slate-700">
+          <th class="py-2 px-3">Repère</th>
+          <th class="py-2 px-3">Désignation</th>
+          <th class="py-2 px-3">Type</th>
+          <th class="py-2 px-3 text-right">Mesure (m)</th>
+        </tr>
+      </thead>
+      <tbody id="printMeasuresBody" class="divide-y divide-slate-200">
+        <!-- Rempli au moment de l'impression -->
+      </tbody>
+    </table>
+
+    <div class="bg-slate-100 p-4 rounded-lg flex justify-between items-center text-xs">
+      <div>
+        <span class="block font-bold text-slate-800">Note de chantier :</span>
+        <span class="text-slate-600">Relevé avec tolérance d'exécution. Les dimensions indiquées ont été relevées in-situ.</span>
+      </div>
+      <div class="text-right">
+        <span class="text-slate-600 block">Surface nette calculée :</span>
+        <span id="printSurfaceNette" class="text-lg font-black text-slate-900">-- m²</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIQUE ET APPLICATION -->
+  <script>
+    /**
+     * Application de Relevé de Façade & Cotation Assistée par Dictée Vocale
+     */
+    const App = {
+      // Éléments DOM
+      canvas: document.getElementById('viewportCanvas'),
+      ctx: null,
+      emptyState: document.getElementById('emptyState'),
+      quickEditPopup: document.getElementById('quickEditPopup'),
+      popupLabel: document.getElementById('popupLabel'),
+      popupValueInput: document.getElementById('popupValueInput'),
+      btnVoicePopup: document.getElementById('btnVoicePopup'),
+      btnSavePopup: document.getElementById('btnSavePopup'),
+      btnClosePopup: document.getElementById('btnClosePopup'),
+      voiceStatusBadge: document.getElementById('voiceStatusBadge'),
+      voiceStatusText: document.getElementById('voiceStatusText'),
+      measuresListContainer: document.getElementById('measuresListContainer'),
+      badgeCotesCount: document.getElementById('badgeCotesCount'),
+      badgeCountMobile: document.getElementById('badgeCountMobile'),
+      surfaceBruteText: document.getElementById('surfaceBruteText'),
+      surfaceOuverturesText: document.getElementById('surfaceOuverturesText'),
+      surfaceNetteText: document.getElementById('surfaceNetteText'),
+      sidebarPanel: document.getElementById('sidebarPanel'),
+
+      // État de l'image
+      image: null,
+      imgNaturalW: 0,
+      imgNaturalH: 0,
+
+      // Navigation Canvas (Zoom & Pan)
+      view: {
+        x: 0,
+        y: 0,
+        scale: 1,
+        minScale: 0.1,
+        maxScale: 10,
+        isPanning: false,
+        lastMouseX: 0,
+        lastMouseY: 0
+      },
+
+      // Liste des cotes & annotations
+      // Structure d'une cote :
+      // {
+      //   id: string,
+      //   label: string,
+      //   type: 'facade' | 'pignon_h_gauche' | 'pignon_h_centre' | 'pignon_h_droite' | 'largeur_base' | 'fenetre' | 'porte' | 'libre' | 'cheminee',
+      //   group: string | null, // ex: 'fenetre_1'
+      //   p1: {x, y}, // Coordonnées dans l'espace image (0 .. imgNaturalW)
+      //   p2: {x, y},
+      //   offset: number, // décalage de la flèche par rapport à la ligne de rappel
+      //   value: string, // texte ou valeur ex "6.45 m"
+      //   numericValue: number | null, // valeur décimale en mètres
+      //   color: string
+      // }
+      measures: [],
+      selectedMeasureId: null,
+      activeHandle: null, // 'p1' | 'p2' | 'body' | null
+      dragTarget: null,
+
+      // Interaction tactile multipoint (pinch to zoom)
+      touchState: {
+        touches: [],
+        startDist: 0,
+        startScale: 1
+      },
+
+      // Reconnaissance Vocale (Web Speech API)
+      recognition: null,
+      isListening: false,
+      activeVoiceTargetId: null,
+
+      // Initialisation
+      init() {
+        this.ctx = this.canvas.getContext('2d');
+        this.resizeCanvas();
+        window.addEventListener('resize', () => {
+          this.resizeCanvas();
+          this.render();
+        });
+
+        // Date du jour automatique
+        const today = new Date();
+        document.getElementById('inputChantierDate').value = today.toLocaleDateString('fr-FR');
+
+        this.initVoiceRecognition();
+        this.bindEvents();
+        this.loadDefaultDemo();
+      },
+
+      // Adaptation taille canvas
+      resizeCanvas() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.canvas.width = rect.width;
+        this.canvas.height = rect.height;
+      },
+
+      // Centrage de l'image dans l'écran
+      fitImageToScreen() {
+        if (!this.image) return;
+        const padding = 40;
+        const availableW = this.canvas.width - padding * 2;
+        const availableH = this.canvas.height - padding * 2;
+
+        const scaleW = availableW / this.imgNaturalW;
+        const scaleH = availableH / this.imgNaturalH;
+        this.view.scale = Math.min(scaleW, scaleH, 1.2);
+
+        this.view.x = (this.canvas.width - this.imgNaturalW * this.view.scale) / 2;
+        this.view.y = (this.canvas.height - this.imgNaturalH * this.view.scale) / 2;
+        this.render();
+      },
+
+      // Chargement d'une image
+      loadImageSource(src) {
+        const img = new Image();
+        img.onload = () => {
+          this.image = img;
+          this.imgNaturalW = img.naturalWidth || 1200;
+          this.imgNaturalH = img.naturalHeight || 800;
+          this.emptyState.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => { this.emptyState.style.display = 'none'; }, 300);
+          this.fitImageToScreen();
+          this.updateMeasuresUI();
+        };
+        img.src = src;
+      },
+
+      // Exemple par défaut (dessin SVG d'une belle maison pignon en data URL pour démarrer immédiatement)
+      loadDefaultDemo() {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#bae6fd"/>
+            </linearGradient>
+            <linearGradient id="wall" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#f8fafc"/>
+              <stop offset="50%" stop-color="#f1f5f9"/>
+              <stop offset="100%" stop-color="#e2e8f0"/>
+            </linearGradient>
+            <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#475569"/>
+              <stop offset="100%" stop-color="#1e293b"/>
+            </linearGradient>
+          </defs>
+          <rect width="1200" height="800" fill="url(#sky)"/>
+          <rect y="640" width="1200" height="160" fill="#166534"/>
+          <!-- Mur Pignon -->
+          <polygon points="260,640 260,380 600,160 940,380 940,640" fill="url(#wall)" stroke="#94a3b8" stroke-width="4"/>
+          <!-- Toiture -->
+          <polygon points="230,380 600,140 970,380 940,390 600,175 260,390" fill="url(#roof)"/>
+          <!-- Cheminée -->
+          <rect x="760" y="170" width="70" height="120" fill="#b91c1c" stroke="#7f1d1d" stroke-width="3"/>
+          <rect x="750" y="160" width="90" height="15" fill="#78350f"/>
+          <!-- Fenêtres Étage -->
+          <rect x="420" y="320" width="90" height="110" fill="#0284c7" stroke="#334155" stroke-width="6" rx="4"/>
+          <line x1="465" y1="320" x2="465" y2="430" stroke="#f8fafc" stroke-width="4"/>
+          <line x1="420" y1="370" x2="510" y2="370" stroke="#f8fafc" stroke-width="4"/>
+          <rect x="690" y="320" width="90" height="110" fill="#0284c7" stroke="#334155" stroke-width="6" rx="4"/>
+          <line x1="735" y1="320" x2="735" y2="430" stroke="#f8fafc" stroke-width="4"/>
+          <line x1="690" y1="370" x2="780" y2="370" stroke="#f8fafc" stroke-width="4"/>
+          <!-- Rez-de-chaussée -->
+          <rect x="340" y="490" width="130" height="115" fill="#0284c7" stroke="#334155" stroke-width="6" rx="4"/>
+          <line x1="405" y1="490" x2="405" y2="605" stroke="#f8fafc" stroke-width="4"/>
+          <!-- Porte d'entrée -->
+          <rect x="555" y="470" width="90" height="170" fill="#0f172a" stroke="#cbd5e1" stroke-width="6" rx="3"/>
+          <circle cx="570" cy="560" r="4" fill="#fbbf24"/>
+          <!-- Baie vitrée droite -->
+          <rect x="720" y="490" width="140" height="115" fill="#0284c7" stroke="#334155" stroke-width="6" rx="4"/>
+          <line x1="790" y1="490" x2="790" y2="605" stroke="#f8fafc" stroke-width="4"/>
+        </svg>`;
+        this.loadImageSource('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+      },
+
+      // Initialisation de la reconnaissance vocale
+      initVoiceRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          console.warn("Reconnaissance vocale non supportée sur ce navigateur.");
+          return;
+        }
+
+        this.recognition = new SpeechRecognition();
+        this.recognition.lang = 'fr-FR';
+        this.recognition.continuous = false;
+        this.recognition.interimResults = false;
+
+        this.recognition.onstart = () => {
+          this.isListening = true;
+          this.voiceStatusBadge.classList.remove('hidden');
+          this.btnVoicePopup.classList.add('mic-recording');
+        };
+
+        this.recognition.onend = () => {
+          this.isListening = false;
+          this.voiceStatusBadge.classList.add('hidden');
+          this.btnVoicePopup.classList.remove('mic-recording');
+        };
+
+        this.recognition.onerror = (event) => {
+          console.error("Erreur vocale :", event.error);
+          this.isListening = false;
+          this.voiceStatusBadge.classList.add('hidden');
+          this.btnVoicePopup.classList.remove('mic-recording');
+        };
+
+        this.recognition.onresult = (event) => {
+          const rawText = event.results[0][0].transcript;
+          const parsedValue = this.parseSpokenMeasure(rawText);
+          
+          if (this.activeVoiceTargetId) {
+            // Mise à jour de la cote spécifique
+            this.setMeasureValue(this.activeVoiceTargetId, parsedValue);
+          } else if (this.selectedMeasureId) {
+            this.setMeasureValue(this.selectedMeasureId, parsedValue);
+          }
+          this.popupValueInput.value = parsedValue;
+        };
+      },
+
+      // Transformation d'une phrase parlée en cote métrique propre ("six mètres quarante" -> "6.40 m")
+      parseSpokenMeasure(spokenText) {
+        if (!spokenText) return "";
+        let text = spokenText.toLowerCase().trim();
+
+        // Remplacement de mots français par chiffres
+        const textToNum = {
+          'un': '1', 'une': '1', 'deux': '2', 'trois': '3', 'quatre': '4',
+          'cinq': '5', 'six': '6', 'sept': '7', 'huit': '8', 'neuf': '9',
+          'dix': '10', 'onze': '11', 'douze': '12', 'treize': '13', 'quatorze': '14',
+          'quinze': '15', 'seize': '16', 'vingt': '20', 'trente': '30',
+          'quarante': '40', 'cinquante': '50', 'soixante': '60'
+        };
+
+        // Remplacement des mots clés
+        text = text.replace(/mètres?|metre|metres/g, '.');
+        text = text.replace(/virgule/g, '.');
+
+        // Nettoyer les espaces autour des points
+        text = text.replace(/\s*\.\s*/g, '.');
+
+        // Remplacer les mots nombres basiques
+        for (const [word, digit] of Object.entries(textToNum)) {
+          const reg = new RegExp('\\b' + word + '\\b', 'g');
+          text = text.replace(reg, digit);
+        }
+
+        // Extraire la première chaîne numérique ou décimale
+        const match = text.match(/\d+(?:[.,]\d+)?/);
+        if (match) {
+          let numStr = match[0].replace(',', '.');
+          let val = parseFloat(numStr);
+          if (!isNaN(val)) {
+            // Si l'utilisateur a dit "deux quarante" sans unité (ex: 2.40)
+            return val.toFixed(2) + " m";
+          }
+        }
+        return spokenText + " m";
+      },
+
+      // Démarrer l'écoute vocale
+      startListening(targetMeasureId = null) {
+        if (!this.recognition) {
+          this.showToast("La reconnaissance vocale nécessite Chrome, Edge ou Safari sur iOS.");
+          return;
+        }
+        this.activeVoiceTargetId = targetMeasureId;
+        try {
+          if (this.isListening) {
+            this.recognition.stop();
+          } else {
+            this.recognition.start();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      },
+
+      // Gestion des gabarits & Ajout automatique de cotes
+      addPignonModel() {
+        if (!this.image) return;
+        const w = this.imgNaturalW;
+        const h = this.imgNaturalH;
+
+        // Position par défaut adaptée à l'image
+        const baseX1 = w * 0.22;
+        const baseX2 = w * 0.78;
+        const baseY = h * 0.80;
+        const leftEavesY = h * 0.48;
+        const rightEavesY = h * 0.48;
+        const peakX = (baseX1 + baseX2) / 2;
+        const peakY = h * 0.20;
+
+        const pignonGroup = 'pignon_' + Date.now();
+
+        // 1. Largeur de base
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: pignonGroup,
+          label: 'Largeur de base',
+          type: 'largeur_base',
+          p1: { x: baseX1, y: baseY },
+          p2: { x: baseX2, y: baseY },
+          offset: 45,
+          value: '',
+          numericValue: null,
+          color: '#f59e0b' // Ambre
+        });
+
+        // 2. Hauteur bas-pente Gauche
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: pignonGroup,
+          label: 'Hauteur égout gauche',
+          type: 'pignon_h_gauche',
+          p1: { x: baseX1, y: baseY },
+          p2: { x: baseX1, y: leftEavesY },
+          offset: -45,
+          value: '',
+          numericValue: null,
+          color: '#38bdf8' // Cyan
+        });
+
+        // 3. Hauteur Faîtage / Cintre central
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: pignonGroup,
+          label: 'Hauteur faîtage / cintre',
+          type: 'pignon_h_centre',
+          p1: { x: peakX, y: baseY },
+          p2: { x: peakX, y: peakY },
+          offset: 0,
+          value: '',
+          numericValue: null,
+          color: '#f43f5e' // Rose fluo
+        });
+
+        // 4. Hauteur bas-pente Droite
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: pignonGroup,
+          label: 'Hauteur égout droite',
+          type: 'pignon_h_droite',
+          p1: { x: baseX2, y: baseY },
+          p2: { x: baseX2, y: rightEavesY },
+          offset: 45,
+          value: '',
+          numericValue: null,
+          color: '#38bdf8' // Cyan
+        });
+
+        this.updateMeasuresUI();
+        this.render();
+      },
+
+      addFacadeModel() {
+        if (!this.image) return;
+        const w = this.imgNaturalW;
+        const h = this.imgNaturalH;
+
+        const x1 = w * 0.20;
+        const x2 = w * 0.80;
+        const yBottom = h * 0.80;
+        const yTop = h * 0.35;
+        const groupId = 'facade_' + Date.now();
+
+        // Largeur totale
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: groupId,
+          label: 'Longueur façade',
+          type: 'largeur_base',
+          p1: { x: x1, y: yBottom },
+          p2: { x: x2, y: yBottom },
+          offset: 40,
+          value: '',
+          numericValue: null,
+          color: '#f59e0b'
+        });
+
+        // Hauteur sous-gouttière
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: groupId,
+          label: 'Hauteur sous égout',
+          type: 'facade',
+          p1: { x: x1, y: yBottom },
+          p2: { x: x1, y: yTop },
+          offset: -40,
+          value: '',
+          numericValue: null,
+          color: '#38bdf8'
+        });
+
+        this.updateMeasuresUI();
+        this.render();
+      },
+
+      addOpening(type = 'fenetre') {
+        if (!this.image) return;
+        const w = this.imgNaturalW;
+        const h = this.imgNaturalH;
+
+        // Position par défaut au milieu
+        const cx = w * 0.50;
+        const cy = h * 0.55;
+        const width = type === 'porte' ? w * 0.08 : w * 0.09;
+        const height = type === 'porte' ? h * 0.22 : h * 0.14;
+
+        const groupId = type + '_' + Date.now();
+        const labelBase = type === 'porte' ? 'Porte' : 'Fenêtre';
+        const count = this.measures.filter(m => m.group && m.group.startsWith(type)).length / 2 + 1;
+
+        // Largeur
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: groupId,
+          label: `${labelBase} ${Math.floor(count)} - Largeur`,
+          type: type,
+          p1: { x: cx - width / 2, y: cy + height / 2 },
+          p2: { x: cx + width / 2, y: cy + height / 2 },
+          offset: 25,
+          value: '',
+          numericValue: null,
+          color: '#10b981' // Émeraude
+        });
+
+        // Hauteur
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: groupId,
+          label: `${labelBase} ${Math.floor(count)} - Hauteur`,
+          type: type,
+          p1: { x: cx + width / 2, y: cy + height / 2 },
+          p2: { x: cx + width / 2, y: cy - height / 2 },
+          offset: 25,
+          value: '',
+          numericValue: null,
+          color: '#10b981'
+        });
+
+        this.updateMeasuresUI();
+        this.render();
+      },
+
+      addFreeMeasure() {
+        if (!this.image) return;
+        const w = this.imgNaturalW;
+        const h = this.imgNaturalH;
+
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: null,
+          label: 'Cote libre ' + (this.measures.filter(m => m.type === 'libre').length + 1),
+          type: 'libre',
+          p1: { x: w * 0.35, y: h * 0.45 },
+          p2: { x: w * 0.65, y: h * 0.45 },
+          offset: 30,
+          value: '',
+          numericValue: null,
+          color: '#a855f7' // Pourpre
+        });
+
+        this.updateMeasuresUI();
+        this.render();
+      },
+
+      addChimney() {
+        if (!this.image) return;
+        const w = this.imgNaturalW;
+        const h = this.imgNaturalH;
+
+        this.measures.push({
+          id: 'meas_' + Math.random().toString(36).substr(2, 9),
+          group: 'cheminee_' + Date.now(),
+          label: 'Hauteur Souche Cheminée',
+          type: 'cheminee',
+          p1: { x: w * 0.65, y: h * 0.28 },
+          p2: { x: w * 0.65, y: h * 0.18 },
+          offset: 25,
+          value: '',
+          numericValue: null,
+          color: '#f97316' // Orange
+        });
+
+        this.updateMeasuresUI();
+        this.render();
+      },
+
+      // Mise à jour de la valeur d'une cote
+      setMeasureValue(measureId, rawValue) {
+        const m = this.measures.find(item => item.id === measureId);
+        if (!m) return;
+        m.value = rawValue;
+        
+        // Extraction numérique (ex: "6.45 m" -> 6.45)
+        const match = rawValue.replace(',', '.').match(/\d+(?:\.\d+)?/);
+        m.numericValue = match ? parseFloat(match[0]) : null;
+
+        this.updateMeasuresUI();
+        this.calculateSurfaces();
+        this.render();
+      },
+
+      // Suppression d'une cote
+      deleteMeasure(measureId) {
+        this.measures = this.measures.filter(m => m.id !== measureId);
+        if (this.selectedMeasureId === measureId) {
+          this.selectedMeasureId = null;
+          this.hidePopup();
+        }
+        this.updateMeasuresUI();
+        this.calculateSurfaces();
+        this.render();
+      },
+
+      // Calcul des surfaces (Pignon / Rectangle - Baies)
+      calculateSurfaces() {
+        let surfaceBrute = 0;
+        let surfaceOuvertures = 0;
+
+        // Chercher s'il y a un pignon complet
+        const hCentre = this.measures.find(m => m.type === 'pignon_h_centre' && m.numericValue);
+        const hGauche = this.measures.find(m => m.type === 'pignon_h_gauche' && m.numericValue);
+        const hDroite = this.measures.find(m => m.type === 'pignon_h_droite' && m.numericValue);
+        const lBase = this.measures.find(m => m.type === 'largeur_base' && m.numericValue);
+
+        if (hCentre && lBase) {
+          // Modèle pignon : rectangle de base + triangle supérieur
+          const hBasMoyenne = (hGauche && hDroite) ? (hGauche.numericValue + hDroite.numericValue) / 2 : (hGauche?.numericValue || hDroite?.numericValue || hCentre.numericValue * 0.6);
+          const hPignonTriangle = Math.max(0, hCentre.numericValue - hBasMoyenne);
+          surfaceBrute = (lBase.numericValue * hBasMoyenne) + (lBase.numericValue * hPignonTriangle / 2);
+        } else if (lBase && (hGauche || hDroite)) {
+          // Modèle façade droite rectangulaire
+          const h = (hGauche?.numericValue || hDroite?.numericValue);
+          surfaceBrute = lBase.numericValue * h;
+        }
+
+        // Calcul des ouvertures (paires largeur / hauteur par groupe)
+        const groupMap = {};
+        this.measures.forEach(m => {
+          if ((m.type === 'fenetre' || m.type === 'porte') && m.group && m.numericValue) {
+            if (!groupMap[m.group]) groupMap[m.group] = [];
+            groupMap[m.group].push(m.numericValue);
+          }
+        });
+
+        Object.values(groupMap).forEach(vals => {
+          if (vals.length >= 2) {
+            surfaceOuvertures += (vals[0] * vals[1]);
+          }
+        });
+
+        // Affichage UI
+        if (surfaceBrute > 0) {
+          this.surfaceBruteText.textContent = surfaceBrute.toFixed(2) + " m²";
+          this.surfaceOuverturesText.textContent = "- " + surfaceOuvertures.toFixed(2) + " m²";
+          const surfaceNette = Math.max(0, surfaceBrute - surfaceOuvertures);
+          this.surfaceNetteText.textContent = surfaceNette.toFixed(2) + " m²";
+        } else {
+          this.surfaceBruteText.textContent = "-- m²";
+          this.surfaceOuverturesText.textContent = "- 0.00 m²";
+          this.surfaceNetteText.textContent = "-- m²";
+        }
+      },
+
+      // Mise à jour de la feuille de métré dans le panneau latéral
+      updateMeasuresUI() {
+        this.badgeCotesCount.textContent = `${this.measures.length} cote${this.measures.length > 1 ? 's' : ''}`;
+        this.badgeCountMobile.textContent = this.measures.length;
+
+        if (this.measures.length === 0) {
+          this.measuresListContainer.innerHTML = `
+            <div class="text-center py-10 text-slate-500 text-xs">
+              <i class="ph-duotone ph-ruler text-3xl mb-2 text-slate-600 block"></i>
+              Aucune flèche ou cote pour le moment.<br>Sélectionnez un modèle à gauche pour commencer.
+            </div>`;
+          return;
+        }
+
+        this.measuresListContainer.innerHTML = '';
+        this.measures.forEach(m => {
+          const isSelected = m.id === this.selectedMeasureId;
+          const itemDiv = document.createElement('div');
+          itemDiv.className = `p-2.5 rounded-xl border transition-all ${
+            isSelected 
+              ? 'bg-slate-800/90 border-amber-500 shadow-md ring-1 ring-amber-500/30' 
+              : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
+          }`;
+
+          itemDiv.innerHTML = `
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-2 truncate">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${m.color}"></span>
+                <span class="text-xs font-semibold text-slate-200 truncate">${m.label}</span>
+              </div>
+              <button data-action="delete" class="text-slate-500 hover:text-rose-400 p-1 text-xs">
+                <i class="ph-bold ph-trash"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="relative flex-1">
+                <input type="text" data-action="input-val" value="${m.value || ''}" placeholder="Cote (ex: 4.80 m)" class="w-full bg-slate-950 border ${m.value ? 'border-emerald-500/40 text-emerald-400 font-bold' : 'border-slate-800 text-slate-300'} rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-amber-400">
+              </div>
+              <button data-action="mic" title="Dicter la mesure" class="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-300 rounded-lg text-sm shrink-0 transition-colors">
+                <i class="ph-bold ph-microphone"></i>
+              </button>
+            </div>
+          `;
+
+          // Clic sur l'élément pour le sélectionner
+          itemDiv.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            this.selectedMeasureId = m.id;
+            this.updateMeasuresUI();
+            this.render();
+          });
+
+          // Événement d'input
+          const inputEl = itemDiv.querySelector('[data-action="input-val"]');
+          inputEl.addEventListener('input', (e) => {
+            this.setMeasureValue(m.id, e.target.value);
+          });
+          inputEl.addEventListener('focus', () => {
+            this.selectedMeasureId = m.id;
+            this.render();
+          });
+
+          // Bouton Micro individuel
+          const micBtn = itemDiv.querySelector('[data-action="mic"]');
+          micBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.selectedMeasureId = m.id;
+            this.startListening(m.id);
+          });
+
+          // Bouton Supprimer
+          const delBtn = itemDiv.querySelector('[data-action="delete"]');
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deleteMeasure(m.id);
+          });
+
+          this.measuresListContainer.appendChild(itemDiv);
+        });
+      },
+
+      // Affichage de la boîte contextuelle au tap/clic sur le canvas
+      showPopupForMeasure(m) {
+        if (!m) return;
+        this.selectedMeasureId = m.id;
+        this.popupLabel.textContent = m.label;
+        this.popupValueInput.value = m.value || '';
+        this.quickEditPopup.classList.remove('hidden');
+
+        // Position de l'étiquette au milieu du segment dans l'espace écran
+        const midX = (m.p1.x + m.p2.x) / 2;
+        const midY = (m.p1.y + m.p2.y) / 2;
+        
+        // Calcul du vecteur perpendiculaire pour l'offset
+        const dx = m.p2.x - m.p1.x;
+        const dy = m.p2.y - m.p1.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+
+        const screenPos = this.toScreenCoords(midX + nx * m.offset, midY + ny * m.offset);
+
+        // Borner dans la fenêtre
+        const popupX = Math.max(120, Math.min(this.canvas.width - 120, screenPos.x));
+        const popupY = Math.max(80, Math.min(this.canvas.height - 40, screenPos.y - 15));
+
+        this.quickEditPopup.style.left = `${popupX}px`;
+        this.quickEditPopup.style.top = `${popupY}px`;
+
+        setTimeout(() => this.popupValueInput.focus(), 50);
+        this.updateMeasuresUI();
+        this.render();
+      },
+
+      hidePopup() {
+        this.quickEditPopup.classList.add('hidden');
+      },
+
+      // Conversions de coordonnées (Image <-> Écran)
+      toScreenCoords(imgX, imgY) {
+        return {
+          x: this.view.x + imgX * this.view.scale,
+          y: this.view.y + imgY * this.view.scale
+        };
+      },
+
+      toImageCoords(screenX, screenY) {
+        return {
+          x: (screenX - this.view.x) / this.view.scale,
+          y: (screenY - this.view.y) / this.view.scale
+        };
+      },
+
+      // Rendu Graphique Complet sur Canvas
+      render() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 1. Dessin de l'image de fond
+        if (this.image) {
+          ctx.save();
+          ctx.translate(this.view.x, this.view.y);
+          ctx.scale(this.view.scale, this.view.scale);
+          ctx.drawImage(this.image, 0, 0, this.imgNaturalW, this.imgNaturalH);
+          ctx.restore();
+        }
+
+        // 2. Dessin des cotes et flèches
+        this.measures.forEach(m => {
+          this.drawMeasureLine(ctx, m, m.id === this.selectedMeasureId);
+        });
+      },
+
+      // Dessine une ligne de cote technique avec flèches et lignes d'attache
+      drawMeasureLine(ctx, m, isSelected) {
+        const p1Screen = this.toScreenCoords(m.p1.x, m.p1.y);
+        const p2Screen = this.toScreenCoords(m.p2.x, m.p2.y);
+
+        const dx = p2Screen.x - p1Screen.x;
+        const dy = p2Screen.y - p1Screen.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 5) return;
+
+        // Normale unitaire (perpendiculaire)
+        const nx = -dy / len;
+        const ny = dx / len;
+        const offsetScreen = m.offset * this.view.scale;
+
+        // Points de la ligne de cote décalée
+        const c1 = { x: p1Screen.x + nx * offsetScreen, y: p1Screen.y + ny * offsetScreen };
+        const c2 = { x: p2Screen.x + nx * offsetScreen, y: p2Screen.y + ny * offsetScreen };
+
+        ctx.save();
+
+        // 1. Lignes d'attache / rappel discrètes
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = isSelected ? 'rgba(245, 158, 11, 0.8)' : 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        // Débordement léger au-delà de la cote
+        const extend = 8;
+        ctx.moveTo(p1Screen.x, p1Screen.y);
+        ctx.lineTo(c1.x + nx * (offsetScreen > 0 ? extend : -extend), c1.y + ny * (offsetScreen > 0 ? extend : -extend));
+        ctx.moveTo(p2Screen.x, p2Screen.y);
+        ctx.lineTo(c2.x + nx * (offsetScreen > 0 ? extend : -extend), c2.y + ny * (offsetScreen > 0 ? extend : -extend));
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 2. Ligne principale de cote
+        ctx.beginPath();
+        ctx.strokeStyle = m.color;
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.moveTo(c1.x, c1.y);
+        ctx.lineTo(c2.x, c2.y);
+        ctx.stroke();
+
+        // 3. Flèches dimensionnelles élégantes aux extrémités
+        const arrowSize = Math.max(8, Math.min(14, 11 * this.view.scale));
+        this.drawArrowHead(ctx, c1, Math.atan2(c2.y - c1.y, c2.x - c1.x), arrowSize, m.color);
+        this.drawArrowHead(ctx, c2, Math.atan2(c1.y - c2.y, c1.x - c2.x), arrowSize, m.color);
+
+        // 4. Étiquette de cote au centre
+        const midC = { x: (c1.x + c2.x) / 2, y: (c1.y + c2.y) / 2 };
+        const labelText = m.value ? m.value : `[?] ${m.label}`;
+
+        ctx.font = `bold ${Math.max(11, Math.min(15, 13 * Math.sqrt(this.view.scale)))}px 'JetBrains Mono', monospace`;
+        const textMetrics = ctx.measureText(labelText);
+        const padX = 8;
+        const padY = 4;
+        const boxW = textMetrics.width + padX * 2;
+        const boxH = 24;
+
+        // Fond badge contrasté
+        ctx.fillStyle = isSelected ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.85)';
+        ctx.strokeStyle = isSelected ? '#f59e0b' : m.color;
+        ctx.lineWidth = isSelected ? 2 : 1;
+
+        // Dessiner le rectangle arrondi du badge
+        const rx = midC.x - boxW / 2;
+        const ry = midC.y - boxH / 2;
+        ctx.beginPath();
+        ctx.roundRect(rx, ry, boxW, boxH, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Texte de cote
+        ctx.fillStyle = m.value ? '#ffffff' : '#fbbf24';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, midC.x, midC.y);
+
+        // 5. Poignées d'ajustement (si sélectionnée)
+        if (isSelected) {
+          this.drawHandle(ctx, p1Screen, '#f59e0b');
+          this.drawHandle(ctx, p2Screen, '#f59e0b');
+          // Poignée centrale d'offset
+          this.drawHandle(ctx, midC, '#38bdf8', 6);
+        }
+
+        ctx.restore();
+      },
+
+      // Dessin d'une pointe de flèche
+      drawArrowHead(ctx, pt, angle, size, color) {
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(size, -size * 0.35);
+        ctx.lineTo(size * 0.7, 0);
+        ctx.lineTo(size, size * 0.35);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+      },
+
+      // Poignée de manipulation
+      drawHandle(ctx, pt, color, radius = 7) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      },
+
+      // Détection de survol / clic sur poignées ou étiquettes
+      hitTest(screenX, screenY) {
+        const handleRadius = 15; // Zone de touch large pour le confort mobile
+
+        for (let i = this.measures.length - 1; i >= 0; i--) {
+          const m = this.measures[i];
+          const p1Screen = this.toScreenCoords(m.p1.x, m.p1.y);
+          const p2Screen = this.toScreenCoords(m.p2.x, m.p2.y);
+
+          // Poignée 1
+          if (Math.hypot(screenX - p1Screen.x, screenY - p1Screen.y) <= handleRadius) {
+            return { measure: m, handle: 'p1' };
+          }
+          // Poignée 2
+          if (Math.hypot(screenX - p2Screen.x, screenY - p2Screen.y) <= handleRadius) {
+            return { measure: m, handle: 'p2' };
+          }
+
+          // Ligne de cote décalée & Badge
+          const dx = p2Screen.x - p1Screen.x;
+          const dy = p2Screen.y - p1Screen.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const nx = -dy / len;
+          const ny = dx / len;
+          const offsetScreen = m.offset * this.view.scale;
+
+          const midC = { 
+            x: (p1Screen.x + p2Screen.x) / 2 + nx * offsetScreen, 
+            y: (p1Screen.y + p2Screen.y) / 2 + ny * offsetScreen 
+          };
+
+          // Hit test sur le badge étiquette (boîte de ~80x30)
+          if (Math.abs(screenX - midC.x) < 45 && Math.abs(screenY - midC.y) < 20) {
+            return { measure: m, handle: 'badge' };
+          }
+
+          // Hit test le long de la ligne
+          const distToLine = this.distToSegment(
+            screenX, screenY,
+            p1Screen.x + nx * offsetScreen, p1Screen.y + ny * offsetScreen,
+            p2Screen.x + nx * offsetScreen, p2Screen.y + ny * offsetScreen
+          );
+
+          if (distToLine <= 14) {
+            return { measure: m, handle: 'line' };
+          }
+        }
+        return null;
+      },
+
+      // Distance point à segment
+      distToSegment(px, py, x1, y1, x2, y2) {
+        const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+        if (l2 === 0) return Math.hypot(px - x1, py - y1);
+        let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+      },
+
+      // Liaison des événements UI et Canvas
+      bindEvents() {
+        const c = this.canvas;
+
+        // Zoom molette
+        c.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+          this.zoomAt(e.clientX, e.clientY, zoomFactor);
+        }, { passive: false });
+
+        // Souris down
+        c.addEventListener('mousedown', (e) => {
+          const rect = c.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          const hit = this.hitTest(mouseX, mouseY);
+          if (hit) {
+            this.selectedMeasureId = hit.measure.id;
+            this.dragTarget = hit.measure;
+            this.activeHandle = hit.handle;
+
+            if (hit.handle === 'badge') {
+              this.showPopupForMeasure(hit.measure);
+            } else {
+              this.hidePopup();
+            }
+          } else {
+            // Clic dans le vide -> Pan
+            this.view.isPanning = true;
+            this.view.lastMouseX = mouseX;
+            this.view.lastMouseY = mouseY;
+            this.selectedMeasureId = null;
+            this.hidePopup();
+          }
+          this.updateMeasuresUI();
+          this.render();
+        });
+
+        // Souris move
+        window.addEventListener('mousemove', (e) => {
+          const rect = c.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          if (this.view.isPanning) {
+            const dx = mouseX - this.view.lastMouseX;
+            const dy = mouseY - this.view.lastMouseY;
+            this.view.x += dx;
+            this.view.y += dy;
+            this.view.lastMouseX = mouseX;
+            this.view.lastMouseY = mouseY;
+            this.render();
+            return;
+          }
+
+          if (this.dragTarget && this.activeHandle) {
+            const imgPos = this.toImageCoords(mouseX, mouseY);
+
+            if (this.activeHandle === 'p1') {
+              this.dragTarget.p1.x = imgPos.x;
+              this.dragTarget.p1.y = imgPos.y;
+            } else if (this.activeHandle === 'p2') {
+              this.dragTarget.p2.x = imgPos.x;
+              this.dragTarget.p2.y = imgPos.y;
+            } else if (this.activeHandle === 'line' || this.activeHandle === 'badge') {
+              // Ajustement du décalage (offset) de la cote
+              const p1 = this.dragTarget.p1;
+              const p2 = this.dragTarget.p2;
+              const dx = p2.x - p1.x;
+              const dy = p2.y - p1.y;
+              const len = Math.hypot(dx, dy) || 1;
+              const nx = -dy / len;
+              const ny = dx / len;
+              // Projection du curseur sur la normale
+              const midX = (p1.x + p2.x) / 2;
+              const midY = (p1.y + p2.y) / 2;
+              this.dragTarget.offset = (imgPos.x - midX) * nx + (imgPos.y - midY) * ny;
+            }
+            this.render();
+          }
+        });
+
+        // Souris up
+        window.addEventListener('mouseup', () => {
+          this.view.isPanning = false;
+          this.dragTarget = null;
+          this.activeHandle = null;
+        });
+
+        // TACTILE (Mobile & Tablette)
+        c.addEventListener('touchstart', (e) => {
+          const rect = c.getBoundingClientRect();
+          if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+
+            const hit = this.hitTest(touchX, touchY);
+            if (hit) {
+              this.selectedMeasureId = hit.measure.id;
+              this.dragTarget = hit.measure;
+              this.activeHandle = hit.handle;
+
+              if (hit.handle === 'badge') {
+                this.showPopupForMeasure(hit.measure);
+              }
+            } else {
+              this.view.isPanning = true;
+              this.view.lastMouseX = touchX;
+              this.view.lastMouseY = touchY;
+              this.selectedMeasureId = null;
+              this.hidePopup();
+            }
+            this.updateMeasuresUI();
+            this.render();
+          } else if (e.touches.length === 2) {
+            // Début du pincement pour zoomer
+            this.view.isPanning = false;
+            this.dragTarget = null;
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            this.touchState.startDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            this.touchState.startScale = this.view.scale;
+          }
+        }, { passive: false });
+
+        c.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          const rect = c.getBoundingClientRect();
+
+          if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+
+            if (this.view.isPanning) {
+              const dx = touchX - this.view.lastMouseX;
+              const dy = touchY - this.view.lastMouseY;
+              this.view.x += dx;
+              this.view.y += dy;
+              this.view.lastMouseX = touchX;
+              this.view.lastMouseY = touchY;
+              this.render();
+            } else if (this.dragTarget && this.activeHandle) {
+              const imgPos = this.toImageCoords(touchX, touchY);
+              if (this.activeHandle === 'p1') {
+                this.dragTarget.p1.x = imgPos.x;
+                this.dragTarget.p1.y = imgPos.y;
+              } else if (this.activeHandle === 'p2') {
+                this.dragTarget.p2.x = imgPos.x;
+                this.dragTarget.p2.y = imgPos.y;
+              } else if (this.activeHandle === 'line' || this.activeHandle === 'badge') {
+                const p1 = this.dragTarget.p1;
+                const p2 = this.dragTarget.p2;
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const len = Math.hypot(dx, dy) || 1;
+                const nx = -dy / len;
+                const ny = dx / len;
+                const midX = (p1.x + p2.x) / 2;
+                const midY = (p1.y + p2.y) / 2;
+                this.dragTarget.offset = (imgPos.x - midX) * nx + (imgPos.y - midY) * ny;
+              }
+              this.render();
+            }
+          } else if (e.touches.length === 2) {
+            // Pincement zoom
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+            const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+
+            if (this.touchState.startDist > 0) {
+              const scaleRatio = currentDist / this.touchState.startDist;
+              this.zoomAt(midX, midY, scaleRatio);
+              this.touchState.startDist = currentDist;
+            }
+          }
+        }, { passive: false });
+
+        c.addEventListener('touchend', () => {
+          this.view.isPanning = false;
+          this.dragTarget = null;
+          this.activeHandle = null;
+          this.touchState.startDist = 0;
+        });
+
+        // Fichiers & Photos
+        const handleFileUpload = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            this.loadImageSource(event.target.result);
+          };
+          reader.readAsDataURL(file);
+        };
+
+        document.getElementById('cameraInput').addEventListener('change', handleFileUpload);
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        document.getElementById('emptyStateCamera').addEventListener('change', handleFileUpload);
+        document.getElementById('emptyStateUpload').addEventListener('change', handleFileUpload);
+        document.getElementById('btnLoadSample').addEventListener('click', () => this.loadDefaultDemo());
+
+        // Boutons Outils Gabarits
+        document.getElementById('btnModelPignon').addEventListener('click', () => this.addPignonModel());
+        document.getElementById('btnModelFacade').addEventListener('click', () => this.addFacadeModel());
+        document.getElementById('btnAddWindow').addEventListener('click', () => this.addOpening('fenetre'));
+        document.getElementById('btnAddDoor').addEventListener('click', () => this.addOpening('porte'));
+        document.getElementById('btnAddFreeMeasure').addEventListener('click', () => this.addFreeMeasure());
+        document.getElementById('btnAddChimney').addEventListener('click', () => this.addChimney());
+
+        // Boutons Zoom
+        document.getElementById('btnZoomIn').addEventListener('click', () => {
+          this.zoomAt(this.canvas.width / 2, this.canvas.height / 2, 1.25);
+        });
+        document.getElementById('btnZoomOut').addEventListener('click', () => {
+          this.zoomAt(this.canvas.width / 2, this.canvas.height / 2, 0.8);
+        });
+        document.getElementById('btnResetView').addEventListener('click', () => this.fitImageToScreen());
+
+        // Suppression de la cote sélectionnée
+        document.getElementById('btnDeleteSelected').addEventListener('click', () => {
+          if (this.selectedMeasureId) {
+            this.deleteMeasure(this.selectedMeasureId);
+          }
+        });
+
+        // Popup Actions
+        this.btnVoicePopup.addEventListener('click', () => {
+          if (this.selectedMeasureId) {
+            this.startListening(this.selectedMeasureId);
+          }
+        });
+
+        this.btnSavePopup.addEventListener('click', () => {
+          if (this.selectedMeasureId) {
+            this.setMeasureValue(this.selectedMeasureId, this.popupValueInput.value);
+            this.hidePopup();
+          }
+        });
+
+        this.popupValueInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && this.selectedMeasureId) {
+            this.setMeasureValue(this.selectedMeasureId, this.popupValueInput.value);
+            this.hidePopup();
+          }
+        });
+
+        this.btnClosePopup.addEventListener('click', () => this.hidePopup());
+
+        // Sidebar mobile toggle
+        const toggleSidebar = () => {
+          this.sidebarPanel.classList.toggle('translate-x-full');
+        };
+        document.getElementById('btnToggleSidebar').addEventListener('click', toggleSidebar);
+        document.getElementById('btnCloseSidebar').addEventListener('click', toggleSidebar);
+
+        // Export de l'image cotée
+        document.getElementById('btnExportImage').addEventListener('click', () => this.exportAnnotatedImage());
+
+        // Impression / PDF
+        document.getElementById('btnPrintReport').addEventListener('click', () => this.preparePrintReport());
+      },
+
+      // Zoom centré sur un point
+      zoomAt(centerX, centerY, factor) {
+        const newScale = Math.max(this.view.minScale, Math.min(this.view.maxScale, this.view.scale * factor));
+        const actualFactor = newScale / this.view.scale;
+
+        this.view.x = centerX - (centerX - this.view.x) * actualFactor;
+        this.view.y = centerY - (centerY - this.view.y) * actualFactor;
+        this.view.scale = newScale;
+        this.render();
+      },
+
+      // Export Haute Résolution de l'image et de toutes ses cotes
+      exportAnnotatedImage() {
+        if (!this.image) return;
+
+        // Création d'un canvas hors-écran à la résolution native de l'image
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = this.imgNaturalW;
+        exportCanvas.height = this.imgNaturalH;
+        const eCtx = exportCanvas.getContext('2d');
+
+        // Dessin de l'image originale
+        eCtx.drawImage(this.image, 0, 0, this.imgNaturalW, this.imgNaturalH);
+
+        // Dessin des cotes à l'échelle 1:1
+        const originalView = { ...this.view };
+        this.view.x = 0;
+        this.view.y = 0;
+        this.view.scale = 1;
+
+        this.measures.forEach(m => {
+          this.drawMeasureLine(eCtx, m, false);
+        });
+
+        // Restauration de la vue
+        this.view = originalView;
+
+        // Téléchargement
+        const link = document.createElement('a');
+        const filename = (document.getElementById('inputClientName').value || 'facade_cotee').trim().replace(/[^a-z0-9]/gi, '_');
+        link.download = `${filename}_cote.png`;
+        link.href = exportCanvas.toDataURL('image/png');
+        link.click();
+      },
+
+      // Préparation de l'impression PDF
+      preparePrintReport() {
+        const clientName = document.getElementById('inputClientName').value || 'Façade';
+        const chantierDate = document.getElementById('inputChantierDate').value || '';
+        document.getElementById('printChantierRef').textContent = clientName;
+        document.getElementById('printChantierDate').textContent = chantierDate;
+
+        // Capture d'image cotée
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = this.imgNaturalW;
+        exportCanvas.height = this.imgNaturalH;
+        const eCtx = exportCanvas.getContext('2d');
+        eCtx.drawImage(this.image, 0, 0, this.imgNaturalW, this.imgNaturalH);
+
+        const originalView = { ...this.view };
+        this.view.x = 0;
+        this.view.y = 0;
+        this.view.scale = 1;
+
+        this.measures.forEach(m => this.drawMeasureLine(eCtx, m, false));
+        this.view = originalView;
+
+        document.getElementById('printCanvasImg').src = exportCanvas.toDataURL('image/jpeg', 0.85);
+
+        // Tableau des cotes
+        const tbody = document.getElementById('printMeasuresBody');
+        tbody.innerHTML = '';
+
+        if (this.measures.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="py-3 px-3 text-center text-slate-400">Aucune cote renseignée</td></tr>`;
+        } else {
+          this.measures.forEach((m, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="py-2 px-3 font-mono font-bold text-slate-700">#${idx + 1}</td>
+              <td class="py-2 px-3 font-semibold text-slate-900">${m.label}</td>
+              <td class="py-2 px-3 text-slate-500 uppercase text-[10px]">${m.type}</td>
+              <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">${m.value || '--'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        document.getElementById('printSurfaceNette').textContent = this.surfaceNetteText.textContent;
+        window.print();
+      },
+
+      // Petit message toaster
+      showToast(msg) {
+        this.voiceStatusText.textContent = msg;
+        this.voiceStatusBadge.classList.remove('hidden');
+        setTimeout(() => this.voiceStatusBadge.classList.add('hidden'), 3500);
+      }
+    };
+
+    // Démarrage au chargement complet
+    window.addEventListener('DOMContentLoaded', () => {
+      App.init();
+    });
+  </script>
+</body>
+</html>
