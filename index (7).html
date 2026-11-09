@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1F4E79"><title>Métré Uniso</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;font-family:system-ui,sans-serif;background:#111;color:#222}
+#app{display:flex;flex-direction:column;height:100dvh}
+header{background:#1F4E79;color:#fff;display:flex;gap:8px;align-items:center;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top))}
+header b{font-size:16px;white-space:nowrap}
+header input{flex:1;min-width:0;border:0;border-radius:8px;padding:8px;font-size:15px}
+button{font:inherit;border:0;border-radius:10px;background:#e8eef4;color:#1F4E79;padding:8px 12px;font-weight:600}
+button.p{background:#C00000;color:#fff}
+#tabs,#tools{display:flex;gap:6px;padding:6px 8px;overflow-x:auto;background:#1b2a38;flex:none}
+#tabs button.on{background:#ffeb3b;color:#000}
+#tools button{white-space:nowrap}
+#stage{flex:1;min-height:0;display:flex;background:#000;position:relative;overflow:auto}
+#box{position:relative;flex:none;margin:auto;line-height:0}
+#box img{display:block;width:100%;height:100%;user-select:none}
+#sv{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-x pan-y}
+#sv [data-d]{touch-action:none}
+#empty{margin:auto;color:#fff;text-align:center;padding:20px;line-height:1.5}
+#empty button{margin:6px;font-size:18px;padding:14px 18px}
+#info{background:#1b2a38;color:#fff;font-size:14px;padding:6px 10px;flex:none}
+#pn{background:#f4f6f8;padding:6px 8px calc(6px + env(safe-area-inset-bottom));flex:none}
+#top{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+#pl{font-weight:700;color:#1F4E79;font-size:13px;flex:1;min-width:0}
+#pv{font-size:24px;font-weight:800;min-width:70px;text-align:right}
+#pv small{font-size:12px;font-weight:500;color:#555;display:block}
+#top button{padding:8px 11px}
+#kp{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+#kp button{height:38px;font-size:19px;background:#fff;padding:0;box-shadow:0 1px 2px #0003}
+#mic.on{background:#C00000;color:#fff;animation:pl 1s infinite}
+@keyframes pl{50%{opacity:.6}}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#000c;color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;display:none;z-index:9}
+</style></head><body>
+<div id="app">
+<header><b>Métré Uniso</b><input id="cl" placeholder="Nom du client / chantier"><button class="p" id="sv_">💾 Enregistrer</button></header>
+<div id="tabs"></div>
+<div id="stage"><div id="empty"></div><div id="box" hidden><img id="im" alt=""><svg id="sv"></svg></div></div>
+<div id="tools"></div>
+<div id="info"></div>
+<div id="pn" hidden><div id="top"><div id="pl"></div><div id="pv"></div><button id="dl">🗑</button><button id="pr">◀</button><button id="nx">▶</button><button id="mic">🎤</button></div><div id="kp"></div></div>
+</div>
+<input type="file" id="fi" accept="image/*" hidden>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+let S;try{S=JSON.parse(localStorage.getItem('um'))}catch(e){}
+S=S||{client:'',walls:[],cur:0};
+let zoom=1,sel=-1,buf='',drag=null,last=null,pend='f',listening=false,rec=null;
+const TY={fen:['Fenêtre','#00bcd4'],por:['Porte','#ff9800'],gar:['Garage','#ab47bc'],aut:['Autre','#90a4ae']};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const W=()=>S.walls[S.cur];
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2500)}
+function save(){try{localStorage.setItem('um',JSON.stringify(S))}catch(e){toast('Mémoire pleine : enregistrez puis supprimez des murs')}}
+const fmt=n=>n.toFixed(1).replace('.',',');
+
+/* ---- lecture des chiffres (clavier ou voix) ---- */
+const NW={zéro:0,zero:0,un:1,une:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,huit:8,neuf:9,dix:10,onze:11,douze:12,treize:13,quatorze:14,quinze:15,seize:16,vingt:20,vingts:20,trente:30,quarante:40,cinquante:50,soixante:60,cent:100,cents:100,mille:1000};
+function words(t){t=t.replace(/-/g,' ').replace(/\bet\b/g,' ').replace(/ virgule /g,'.');
+const out=[];let cur=0,tot=0,on=false,prev='';
+const fl=()=>{if(on){out.push(tot+cur);cur=tot=0;on=false}};
+for(const k of t.split(/\s+/)){
+if(k in NW){const v=NW[k];on=true;
+if(v==100)cur=(cur||1)*100;
+else if(v==1000){tot+=(cur||1)*1000;cur=0}
+else if(v==20&&prev=='quatre'&&cur%100==4)cur+=76;
+else cur+=v}else{fl();if(k)out.push(k)}prev=k}
+fl();return out.join(' ')}
+function parse(s){s=words(String(s).toLowerCase().replace(/(\d),(\d)/g,'$1.$2'));
+let m=s.match(/(\d+(?:\.\d+)?)\s*(?:m|mètres?|metres?)(?:\s*(\d+))?\b/);
+if(m&&!/centim/.test(s))return Math.round(m[1]*100+(m[2]?+m[2]:0));
+m=s.match(/\d+(?:\.\d+)?/);if(!m)return null;let v=+m[0];
+if(!/cm|centim/.test(s)&&m[0].includes('.')&&v<30)v*=100;return Math.round(v)}
+
+/* ---- champs à renseigner ---- */
+const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+function fields(w){const P=w.pts,top=w.t=='f'?3:4,F=[];
+F.push({l:'Longueur du mur',s:'L',k:'L',p:mid(P[0],P[1])},{l:'Hauteur à gauche',s:'G',k:'hG',p:mid(P[0],P[top])},{l:'Hauteur à droite',s:'D',k:'hD',p:mid(P[1],P[2])});
+if(w.t=='p')F.push({l:'Hauteur totale (sol → faîtage)',s:'H',k:'H',p:[P[3][0],(P[3][1]+(P[0][1]+P[1][1])/2)/2]});
+w.o.forEach((o,i)=>{const n=TY[o.t][0]+' '+w.o.filter((q,j)=>j<=i&&q.t==o.t).length;
+F.push({l:n+' – largeur',s:'l',k:['a',i],p:[o.x+o.w/2,o.y],o:i},{l:n+' – hauteur',s:'h',k:['b',i],p:[o.x+o.w,o.y+o.h/2],o:i})});
+return F}
+const gv=(w,k)=>Array.isArray(k)?w.o[k[1]][k[0]]:w.v[k];
+const sv=(w,k,v)=>{if(Array.isArray(k))w.o[k[1]][k[0]]=v;else w.v[k]=v};
+
+/* ---- surfaces ---- */
+function area(w){const v=w.v;if(v.L==null||v.hG==null||v.hD==null)return null;
+const P=[[0,0],[v.L,0],[v.L,v.hD]];if(w.t=='p'){if(v.H==null)return null;P.push([v.L/2,v.H])}P.push([0,v.hG]);
+let s=0;P.forEach((p,i)=>{const q=P[(i+1)%P.length];s+=p[0]*q[1]-q[0]*p[1]});return Math.abs(s)/2/1e4}
+const opsA=w=>w.o.reduce((s,o)=>s+(o.a&&o.b?o.a*o.b:0),0)/1e4;
+function recap(){let t='MÉTRÉ UNISO - '+(S.client||'')+'\n',tot=0;
+S.walls.forEach(w=>{const a=area(w),o=opsA(w);t+='\n'+w.n+' ('+(w.t=='f'?'façade':'pignon')+')\n';
+fields(w).forEach(f=>{const v=gv(w,f.k);t+='  '+f.l+' : '+(v==null?'?':v+' cm')+'\n'});
+if(a!=null){t+='  Surface brute '+fmt(a)+' m2 - ouvertures '+fmt(o)+' m2 = NETTE '+fmt(a-o)+' m2\n';tot+=a-o}});
+return t+'\nTOTAL NET : '+fmt(tot)+' m2\nTél. 06 45 62 42 85 - s.renaud@ouest-eco-logis.fr'}
+
+/* ---- dessin sur la photo ---- */
+function draw(w,k,ui){const P=w.pts,F=fields(w);let h='';
+h+=`<polygon points="${P.map(p=>p.join(',')).join(' ')}" fill="rgba(255,235,59,.14)" stroke="#ffeb3b" stroke-width="${3*k}"/>`;
+if(w.t=='p'){const y=(P[0][1]+P[1][1])/2;h+=`<line x1="${P[3][0]}" y1="${P[3][1]}" x2="${P[3][0]}" y2="${y}" stroke="#ffeb3b" stroke-width="${2*k}" stroke-dasharray="${8*k} ${6*k}"/>`}
+w.o.forEach((o,i)=>{const c=TY[o.t][1];
+h+=`<rect data-d="m${i}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="${c}33" stroke="${c}" stroke-width="${3*k}"/>`;
+if(ui)h+=`<circle data-d="r${i}" cx="${o.x+o.w}" cy="${o.y+o.h}" r="${13*k}" fill="#fff" stroke="${c}" stroke-width="${3*k}"/>`});
+if(ui)P.forEach((p,i)=>h+=`<circle data-d="p${i}" cx="${p[0]}" cy="${p[1]}" r="${14*k}" fill="#fff" stroke="#1565c0" stroke-width="${3*k}"/>`);
+F.forEach((f,i)=>{const v=gv(w,f.k),t=f.s+' '+(v==null?'?':v),fs=14*k,wd=t.length*fs*.62+16*k,ht=fs*1.9;
+const c=ui&&i==sel?'#1565c0':v==null?'#d32f2f':'#2e7d32';
+h+=`<g data-f="${i}"><rect x="${f.p[0]-wd/2}" y="${f.p[1]-ht/2}" width="${wd}" height="${ht}" rx="${ht/2}" fill="${c}" stroke="#fff" stroke-width="${1.5*k}"/><text x="${f.p[0]}" y="${f.p[1]+fs*.36}" font-size="${fs}" fill="#fff" text-anchor="middle" font-family="sans-serif" font-weight="700">${t}</text></g>`});
+return h}
+
+function render(){const w=W();
+$('#tabs').innerHTML=S.walls.map((q,i)=>`<button data-t="${i}" class="${i==S.cur?'on':''}">${q.n}</button>`).join('')+'<button data-add="f">＋ Façade</button><button data-add="p">＋ Pignon</button>';
+$('#cl').value=S.client;
+$('#empty').hidden=!!w;$('#box').hidden=!w;
+if(!w){$('#empty').innerHTML='Ajoutez la photo d\'un mur :<br><button data-add="f">📷 Façade</button><button data-add="p">📷 Pignon</button><br>Déplacez les points bleus sur les coins du mur,<br>puis remplissez les cotes à la voix ou au clavier.';
+$('#tools').innerHTML='';$('#info').textContent='';$('#pn').hidden=true;return}
+if($('#im').dataset.id!=w.id){$('#im').src=w.img;$('#im').dataset.id=w.id}
+panel();$('#info').style.display=sel>=0?'none':'';
+const st=$('#stage'),fit=Math.min(st.clientWidth/w.w,st.clientHeight/w.h),cw=w.w*fit*zoom;
+$('#box').style.width=cw+'px';$('#box').style.height=w.h*fit*zoom+'px';
+const svg=$('#sv');svg.setAttribute('viewBox',`0 0 ${w.w} ${w.h}`);
+svg.innerHTML=draw(w,w.w/cw,true);
+$('#tools').innerHTML='<button data-z="-1">➖</button><button data-z="1">➕</button>'+Object.keys(TY).map(t=>`<button data-o="${t}">＋ ${TY[t][0]}</button>`).join('')+'<button data-ren="1">✎ Nom</button><button data-del="1">🗑 Mur</button>';
+const a=area(w),o=opsA(w),all=S.walls.reduce((s,q)=>{const x=area(q);return s+(x==null?0:x-opsA(q))},0);
+$('#info').textContent=(a!=null?`${w.n} : ${fmt(a-o)} m² nets (brut ${fmt(a)} − ouvertures ${fmt(o)})  •  `:'Remplissez L, G, D'+(w.t=='p'?', H':'')+' pour la surface  •  ')+'Total '+fmt(all)+' m²';
+panel()}
+function panel(){const w=W(),f=w&&fields(w)[sel];$('#pn').hidden=!f;if(!f)return;
+$('#pl').textContent=f.l;const v=gv(w,f.k);
+$('#pv').innerHTML=(buf||'—')+' <small>'+(v!=null?v+' cm':'cm (ou 2,40 m)')+'</small>';
+$('#dl').style.display=f.o!=null?'':'none';$('#mic').className=listening?'on':'';$('#mic').textContent=listening?'🎙':'🎤'}
+function pick(i){const w=W(),F=fields(w);sel=(i+F.length)%F.length;const v=gv(w,F[sel].k);buf=v==null?'':String(v);render()}
+function setCur(v){const w=W(),f=fields(w)[sel];if(!f)return;sv(w,f.k,v);buf=v==null?'':String(v);save();render()}
+
+/* ---- gestes sur la photo ---- */
+const svg=$('#sv');
+function pt(e){const w=W(),r=svg.getBoundingClientRect();return[(e.clientX-r.left)*w.w/r.width,(e.clientY-r.top)*w.h/r.height]}
+svg.addEventListener('pointerdown',e=>{const w=W();if(!w)return;
+const g=e.target.closest('[data-f]');if(g){pick(+g.dataset.f);return}
+const d=e.target.closest('[data-d]');
+if(d){drag=d.dataset.d;last=pt(e);svg.setPointerCapture(e.pointerId)}else{sel=-1;render()}});
+svg.addEventListener('pointermove',e=>{if(!drag)return;const w=W(),p=pt(e),t=drag[0],i=+drag.slice(1);
+p[0]=Math.max(0,Math.min(w.w,p[0]));p[1]=Math.max(0,Math.min(w.h,p[1]));
+if(t=='p')w.pts[i]=p.map(Math.round);
+else{const o=w.o[i];if(t=='m'){o.x+=p[0]-last[0];o.y+=p[1]-last[1]}else{o.w=Math.max(30,p[0]-o.x);o.h=Math.max(30,p[1]-o.y)}}
+last=p;render()});
+const end=()=>{if(drag){drag=null;save()}};
+svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+window.addEventListener('resize',()=>render());
+
+/* ---- boutons ---- */
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+if(d.z){zoom=Math.max(1,Math.min(4,zoom+d.z*.5));render()}
+if(d.t!=null){S.cur=+d.t;zoom=1;sel=-1;save();render()}
+if(d.add){pend=d.add;$('#fi').value='';$('#fi').click()}
+if(d.o){const w=W(),W_=w.w*.16;w.o.push({t:d.o,x:w.w*.42,y:w.h*.45,w:W_,h:W_*(d.o=='fen'?1:1.6),a:null,b:null});pick(fields(w).length-2)}
+if(d.ren){const w=W(),n=prompt('Nom du mur',w.n);if(n){w.n=n;save();render()}}
+if(d.del&&confirm('Supprimer ce mur et sa photo ?')){S.walls.splice(S.cur,1);S.cur=Math.max(0,S.cur-1);sel=-1;save();render()}});
+const KEYS=['1','2','3','4','5','6','7','8','9',',','0','⌫'];
+$('#kp').innerHTML=KEYS.map(k=>`<button data-k="${k}">${k}</button>`).join('');
+$('#kp').addEventListener('click',e=>{const k=e.target.dataset.k;if(!k)return;
+buf=k=='⌫'?buf.slice(0,-1):buf+k;if(buf.length>7)buf=buf.slice(0,7);setCur(buf?parse(buf):null)});
+$('#nx').onclick=()=>pick(sel+1);$('#pr').onclick=()=>pick(sel-1);
+$('#dl').onclick=()=>{const w=W(),f=fields(w)[sel];if(f&&f.o!=null){w.o.splice(f.o,1);sel=-1;save();render()}};
+$('#cl').oninput=e=>{S.client=e.target.value;save()};
+
+/* ---- ajout d'une photo ---- */
+$('#fi').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();
+im.onload=()=>{const m=1400,r=Math.min(1,m/Math.max(im.width,im.height)),w=Math.round(im.width*r),h=Math.round(im.height*r);
+const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
+const t=pend,n=S.walls.filter(q=>q.t==t).length+1;
+const pts=t=='f'?[[.12,.8],[.88,.8],[.88,.25],[.12,.25]]:[[.12,.8],[.88,.8],[.88,.45],[.5,.15],[.12,.45]];
+S.walls.push({id:Date.now(),n:(t=='f'?'Façade ':'Pignon ')+n,t,img:c.toDataURL('image/jpeg',.8),w,h,pts:pts.map(p=>[Math.round(p[0]*w),Math.round(p[1]*h)]),v:{},o:[]});
+S.cur=S.walls.length-1;sel=0;buf='';save();render();pick(0);URL.revokeObjectURL(im.src)};
+im.src=URL.createObjectURL(f)};
+
+/* ---- dictée vocale ---- */
+function mic(){if(!SR)return toast('Dictée indisponible ici : utilisez Chrome');
+if(listening){listening=false;try{rec.stop()}catch(e){}panel();return}
+rec=new SR();rec.lang='fr-FR';rec.maxAlternatives=3;
+rec.onresult=e=>{const a=[...e.results[e.results.length-1]].map(x=>x.transcript),t=a[0].toLowerCase();
+if(/suivant|passe/.test(t))return pick(sel+1);
+if(/pr[ée]c[ée]dent|retour/.test(t))return pick(sel-1);
+if(/stop|arr[êe]t|termin/.test(t))return mic();
+for(const s of a){const v=parse(s);if(v!=null){setCur(v);toast(v+' cm');
+if(sel<fields(W()).length-1)setTimeout(()=>pick(sel+1),500);else mic();return}}
+toast('Pas compris : '+a[0])};
+rec.onend=()=>{if(listening)try{rec.start()}catch(e){}};
+rec.onerror=ev=>{if(ev.error=='not-allowed'){listening=false;toast('Autorisez le micro dans Chrome');panel()}};
+listening=true;try{rec.start()}catch(e){}panel()}
+$('#mic').onclick=mic;
+
+/* ---- enregistrement / partage ---- */
+async function pic(w){const im=new Image();im.src=w.img;await im.decode();
+const c=document.createElement('canvas');c.width=w.w;c.height=w.h;const x=c.getContext('2d');x.drawImage(im,0,0);
+const s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w.w} ${w.h}" width="${w.w}" height="${w.h}">${draw(w,w.w/900,false)}</svg>`;
+const o=new Image();o.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);await o.decode();x.drawImage(o,0,0,w.w,w.h);
+return new Promise(r=>c.toBlob(r,'image/jpeg',.9))}
+$('#sv_').onclick=async()=>{if(!S.walls.length)return toast('Ajoutez d\'abord une photo');
+toast('Préparation…');const base=(S.client||'chantier').replace(/[^\w\-]+/g,'_'),files=[];
+for(const w of S.walls)files.push(new File([await pic(w)],base+'_'+w.n.replace(/\s+/g,'_')+'.jpg',{type:'image/jpeg'}));
+files.push(new File([recap()],base+'_recap.txt',{type:'text/plain'}));
+try{if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,title:'Métré '+(S.client||'')});return}}catch(e){if(e.name=='AbortError')return}
+files.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click()},i*400));
+toast('Fichiers téléchargés')};
+render();
+</script></body></html>
