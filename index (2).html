@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Relevé de Métré Façade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: #111827;
+      color: #f9fafb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* BARRE D'OUTILS HAUTE */
+    header {
+      background: #1f2937;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      border-bottom: 2px solid #374151;
+      flex-shrink: 0;
+    }
+    .btn {
+      background: #374151;
+      color: #fff;
+      border: 1px solid #4b5563;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-photo { background: #2563eb; border-color: #3b82f6; }
+    .btn-auto { background: #d97706; border-color: #f59e0b; color: #fff; }
+    .btn-del { background: #dc2626; border-color: #ef4444; }
+    .btn-export { background: #059669; border-color: #10b981; }
+
+    /* ZONE IMAGE & CANVAS */
+    #view-container {
+      flex: 1;
+      position: relative;
+      background: #030712;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #stage {
+      position: relative;
+      transform-origin: 0 0;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+    #bg-img {
+      display: block;
+      max-width: 100%;
+      pointer-events: none;
+    }
+    #draw-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    #placeholder-msg {
+      position: absolute;
+      color: #9ca3af;
+      font-size: 15px;
+      text-align: center;
+      line-height: 1.6;
+      pointer-events: none;
+    }
+
+    /* BANDEAU BAS PERMANENT */
+    #dock {
+      background: #1f2937;
+      border-top: 3px solid #facc15;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .dock-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: #facc15;
+      color: #000;
+      font-weight: 900;
+      font-size: 15px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      min-width: 70px;
+      text-align: center;
+    }
+    .val-input {
+      flex: 1;
+      background: #111827;
+      border: 2px solid #facc15;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      padding: 6px;
+      outline: none;
+    }
+    .val-input:focus {
+      border-color: #60a5fa;
+    }
+    .btn-mic {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-mic.listening {
+      background: #22c55e;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; transform: scale(1.03); } }
+
+    .dock-sub {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-nav {
+      background: #374151;
+      border: 1px solid #6b7280;
+      color: #f9fafb;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .counter-text {
+      font-size: 12px;
+      color: #9ca3af;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <label class="btn btn-photo">
+      📷 Charger Photo
+      <input type="file" id="input-file" accept="image/*" capture="environment" style="display:none">
+    </label>
+    <button class="btn btn-auto" id="btn-prequote">📐 Pré-coter Tout</button>
+    <button class="btn" id="btn-add-win">+ Fenêtre</button>
+    <button class="btn" id="btn-add-arrow">+ Cote Libre</button>
+    <button class="btn btn-del" id="btn-del">🗑️ Suppr</button>
+    <button class="btn btn-export" id="btn-export">💾 Exporter Image</button>
+  </header>
+
+  <div id="view-container">
+    <div id="placeholder-msg">Prenez une photo de votre façade<br>pour afficher et dicter vos cotes</div>
+    <div id="stage" style="display:none;">
+      <img id="bg-img" alt="Façade">
+      <canvas id="draw-layer"></canvas>
+    </div>
+  </div>
+
+  <div id="dock">
+    <div class="dock-main">
+      <div class="badge" id="badge-id">#--</div>
+      <input type="text" id="input-val" class="val-input" placeholder="Ex: 325 ou 3.25" inputmode="decimal">
+      <button class="btn-mic" id="btn-mic">🎤 Dicter</button>
+    </div>
+    <div class="dock-sub">
+      <button class="btn-nav" id="btn-prev">⬅️ Précédente</button>
+      <div class="counter-text" id="counter-info">0 / 0 cotes</div>
+      <button class="btn-nav" id="btn-next">Suivante ➡️</button>
+    </div>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const bgImg = document.getElementById('bg-img');
+    const canvas = document.getElementById('draw-layer');
+    const ctx = canvas.getContext('2d');
+    const viewContainer = document.getElementById('view-container');
+    const placeholderMsg = document.getElementById('placeholder-msg');
+
+    let arrows = [];
+    let selectedId = null;
+    let draggingHandle = null; // { arrow, pt: 'p1'|'p2' }
+    let isCreatingArrow = false;
+    let newArrowStart = null;
+    let arrowCounter = 1;
+
+    // Chargement de l'image
+    document.getElementById('input-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        bgImg.onload = () => {
+          placeholderMsg.style.display = 'none';
+          stage.style.display = 'block';
+          fitStageToContainer();
+          arrows = [];
+          arrowCounter = 1;
+          selectedId = null;
+          // Pré-cotation par défaut immédiate
+          createDefaultPrequote();
+          render();
+          updateDock();
+        };
+        bgImg.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function fitStageToContainer() {
+      const cw = viewContainer.clientWidth - 16;
+      const ch = viewContainer.clientHeight - 16;
+      const iw = bgImg.naturalWidth;
+      const ih = bgImg.naturalHeight;
+      const scale = Math.min(cw / iw, ch / ih);
+
+      const renderW = Math.round(iw * scale);
+      const renderH = Math.round(ih * scale);
+
+      stage.style.width = renderW + 'px';
+      stage.style.height = renderH + 'px';
+      bgImg.style.width = renderW + 'px';
+      bgImg.style.height = renderH + 'px';
+
+      canvas.width = renderW;
+      canvas.height = renderH;
+    }
+
+    window.addEventListener('resize', () => {
+      if (bgImg.src) {
+        // Sauvegarder les ratios
+        const oldW = canvas.width || 1;
+        const oldH = canvas.height || 1;
+        fitStageToContainer();
+        const rw = canvas.width / oldW;
+        const rh = canvas.height / oldH;
+        arrows.forEach(a => {
+          a.p1.x *= rw; a.p1.y *= rh;
+          a.p2.x *= rw; a.p2.y *= rh;
+        });
+        render();
+      }
+    });
+
+    // Modèle pré-coté complet (Base, 3 Hauteurs pignon/façade, fenêtres RDC & Étage)
+    function createDefaultPrequote() {
+      arrows = [];
+      arrowCounter = 1;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // 1. Longueur basse (sol / soubassement)
+      addArrow(w * 0.12, h * 0.88, w * 0.88, h * 0.88, 'red', '');
+
+      // 2. Hauteur Egout Gauche
+      addArrow(w * 0.12, h * 0.88, w * 0.12, h * 0.42, 'blue', '');
+
+      // 3. Hauteur Faîtage / Cintre (verticale pure, pas de rampant)
+      addArrow(w * 0.50, h * 0.88, w * 0.50, h * 0.14, 'blue', '');
+
+      // 4. Hauteur Egout Droit
+      addArrow(w * 0.88, h * 0.88, w * 0.88, h * 0.42, 'blue', '');
+
+      // 5. Fenêtres Étage
+      addWindowSet(w * 0.24, h * 0.24, w * 0.16, h * 0.18);
+      addWindowSet(w * 0.60, h * 0.24, w * 0.16, h * 0.18);
+
+      // 6. Baies / Ouvertures RDC
+      addWindowSet(w * 0.24, h * 0.56, w * 0.18, h * 0.22);
+      addWindowSet(w * 0.58, h * 0.56, w * 0.20, h * 0.24);
+
+      selectedId = arrows[0] ? arrows[0].id : null;
+    }
+
+    document.getElementById('btn-prequote').addEventListener('click', () => {
+      if (!bgImg.src) return alert("Chargez d'abord une photo.");
+      createDefaultPrequote();
+      render();
+      updateDock();
+    });
+
+    function addWindowSet(x, y, w, h) {
+      addArrow(x, y - 8, x + w, y - 8, 'red', '');
+      addArrow(x + w + 8, y, x + w + 8, y + h, 'blue', '');
+    }
+
+    function addArrow(x1, y1, x2, y2, color, val) {
+      arrows.push({
+        id: arrowCounter++,
+        p1: { x: x1, y: y1 },
+        p2: { x: x2, y: y2 },
+        color: color || 'red',
+        value: val || ''
+      });
+      selectedId = arrows[arrows.length - 1].id;
+    }
+
+    document.getElementById('btn-add-win').addEventListener('click', () => {
+      if (!bgImg.src) return;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      addWindowSet(cx - 40, cy - 40, 80, 90);
+      render();
+      updateDock();
+    });
+
+    let creatingMode = false;
+    document.getElementById('btn-add-arrow').addEventListener('click', () => {
+      if (!bgImg.src) return;
+      creatingMode = true;
+      alert("Touchez et faites glisser sur la façade pour tracer votre cote.");
+    });
+
+    document.getElementById('btn-del').addEventListener('click', () => {
+      if (!selectedId) return;
+      arrows = arrows.filter(a => a.id !== selectedId);
+      selectedId = arrows.length ? arrows[0].id : null;
+      render();
+      updateDock();
+    });
+
+    // DESSIN DU CANVAS
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      arrows.forEach(arr => {
+        const isSel = (arr.id === selectedId);
+        const { p1, p2, color, value } = arr;
+        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        const headlen = 11;
+
+        // Tracé de la ligne avec double flèche
+        ctx.save();
+        ctx.strokeStyle = isSel ? '#ffffff' : (color === 'blue' ? '#3b82f6' : '#ef4444');
+        ctx.lineWidth = isSel ? 3.5 : 2.5;
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+
+        // Pointes
+        drawTip(p1.x, p1.y, angle + Math.PI, headlen);
+        drawTip(p2.x, p2.y, angle, headlen);
+
+        // Poignées interactives aux extrémités
+        ctx.fillStyle = isSel ? '#facc15' : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p1.x, p1.y, 6, 0, Math.PI * 2);
+        ctx.arc(p2.x, p2.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Étiquette Jaune d'attente / cote
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const text = value ? String(value) : '...';
+
+        ctx.font = 'bold 13px sans-serif';
+        const tw = ctx.measureText(text).width;
+        const boxW = Math.max(34, tw + 14);
+        const boxH = 22;
+
+        ctx.fillStyle = isSel ? '#fef08a' : '#fde047';
+        ctx.strokeStyle = isSel ? '#000000' : '#854d0e';
+        ctx.lineWidth = isSel ? 2 : 1.2;
+        roundBox(ctx, midX - boxW/2, midY - boxH/2, boxW, boxH, 4);
+
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, midX, midY);
+
+        ctx.restore();
+      });
+    }
+
+    function drawTip(x, y, rad, len) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - len * Math.cos(rad - Math.PI / 6), y - len * Math.sin(rad - Math.PI / 6));
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - len * Math.cos(rad + Math.PI / 6), y - len * Math.sin(rad + Math.PI / 6));
+      ctx.stroke();
+    }
+
+    function roundBox(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // GESTION POINTEUR / TOUCH
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      const pos = getPos(e);
+
+      if (creatingMode) {
+        newArrowStart = pos;
+        isCreatingArrow = true;
+        return;
+      }
+
+      // Clic sur poignée ?
+      for (let arr of arrows) {
+        if (Math.hypot(arr.p1.x - pos.x, arr.p1.y - pos.y) < 22) {
+          draggingHandle = { arrow: arr, pt: 'p1' };
+          selectedId = arr.id;
+          updateDock();
+          render();
+          return;
+        }
+        if (Math.hypot(arr.p2.x - pos.x, arr.p2.y - pos.y) < 22) {
+          draggingHandle = { arrow: arr, pt: 'p2' };
+          selectedId = arr.id;
+          updateDock();
+          render();
+          return;
+        }
+      }
+
+      // Clic sur étiquette jaune ?
+      for (let arr of arrows) {
+        const mx = (arr.p1.x + arr.p2.x) / 2;
+        const my = (arr.p1.y + arr.p2.y) / 2;
+        if (Math.hypot(mx - pos.x, my - pos.y) < 26) {
+          selectedId = arr.id;
+          updateDock();
+          render();
+          return;
+        }
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (draggingHandle) {
+        const pos = getPos(e);
+        draggingHandle.arrow[draggingHandle.pt] = pos;
+        render();
+      }
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      if (creatingMode && isCreatingArrow && newArrowStart) {
+        const pos = getPos(e);
+        if (Math.hypot(pos.x - newArrowStart.x, pos.y - newArrowStart.y) > 25) {
+          const isVert = Math.abs(pos.y - newArrowStart.y) > Math.abs(pos.x - newArrowStart.x);
+          addArrow(newArrowStart.x, newArrowStart.y, pos.x, pos.y, isVert ? 'blue' : 'red', '');
+        }
+        creatingMode = false;
+        isCreatingArrow = false;
+        newArrowStart = null;
+        render();
+        updateDock();
+      }
+      draggingHandle = null;
+    });
+
+    // SYNCHRO BANDEAU BAS
+    const badgeId = document.getElementById('badge-id');
+    const inputVal = document.getElementById('input-val');
+    const counterInfo = document.getElementById('counter-info');
+
+    function updateDock() {
+      const idx = arrows.findIndex(a => a.id === selectedId);
+      if (idx !== -1) {
+        badgeId.textContent = `#${arrows[idx].id}`;
+        inputVal.value = arrows[idx].value || '';
+        counterInfo.textContent = `${idx + 1} / ${arrows.length} cotes`;
+      } else {
+        badgeId.textContent = '#--';
+        inputVal.value = '';
+        counterInfo.textContent = `0 / ${arrows.length} cotes`;
+      }
+    }
+
+    inputVal.addEventListener('input', (e) => {
+      const arr = arrows.find(a => a.id === selectedId);
+      if (arr) {
+        arr.value = e.target.value;
+        render();
+      }
+    });
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (!arrows.length) return;
+      const idx = arrows.findIndex(a => a.id === selectedId);
+      selectedId = arrows[(idx + 1) % arrows.length].id;
+      updateDock();
+      render();
+      inputVal.focus();
+    });
+
+    document.getElementById('btn-prev').addEventListener('click', () => {
+      if (!arrows.length) return;
+      const idx = arrows.findIndex(a => a.id === selectedId);
+      selectedId = arrows[(idx - 1 + arrows.length) % arrows.length].id;
+      updateDock();
+      render();
+      inputVal.focus();
+    });
+
+    // DICTEE VOCALE SANS FAILLE
+    const btnMic = document.getElementById('btn-mic');
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRec) {
+      const rec = new SpeechRec();
+      rec.lang = 'fr-FR';
+      rec.continuous = false;
+      rec.interimResults = false;
+
+      btnMic.addEventListener('click', () => {
+        try {
+          rec.start();
+          btnMic.classList.add('listening');
+          btnMic.textContent = 'Écoute...';
+        } catch(err) {
+          rec.stop();
+        }
+      });
+
+      rec.onresult = (e) => {
+        let text = e.results[0][0].transcript.toLowerCase();
+        text = text.replace(/mètres?/g, '.').replace(/virgule/g, '.').replace(/\s+/g, '');
+        inputVal.value = text;
+        const arr = arrows.find(a => a.id === selectedId);
+        if (arr) {
+          arr.value = text;
+          render();
+        }
+        // Passage auto cote suivante
+        setTimeout(() => {
+          document.getElementById('btn-next').click();
+        }, 400);
+      };
+
+      rec.onend = () => {
+        btnMic.classList.remove('listening');
+        btnMic.textContent = '🎤 Dicter';
+      };
+      rec.onerror = () => {
+        btnMic.classList.remove('listening');
+        btnMic.textContent = '🎤 Dicter';
+      };
+    } else {
+      btnMic.style.display = 'none';
+    }
+
+    // EXPORT FUSIONNÉ IMAGE + COTES
+    document.getElementById('btn-export').addEventListener('click', () => {
+      if (!bgImg.src) return;
+      const out = document.createElement('canvas');
+      out.width = bgImg.naturalWidth;
+      out.height = bgImg.naturalHeight;
+      const octx = out.getContext('2d');
+      // 1. Dessin image originale plein format
+      octx.drawImage(bgImg, 0, 0);
+
+      // 2. Dessin des flèches à l'échelle
+      const sx = out.width / canvas.width;
+      const sy = out.height / canvas.height;
+
+      arrows.forEach(arr => {
+        const p1 = { x: arr.p1.x * sx, y: arr.p1.y * sy };
+        const p2 = { x: arr.p2.x * sx, y: arr.p2.y * sy };
+        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        const headlen = 22 * sx;
+
+        octx.save();
+        octx.strokeStyle = arr.color === 'blue' ? '#2563eb' : '#dc2626';
+        octx.lineWidth = 5 * sx;
+        octx.beginPath();
+        octx.moveTo(p1.x, p1.y);
+        octx.lineTo(p2.x, p2.y);
+        octx.stroke();
+
+        // Flèches
+        drawExportTip(octx, p1.x, p1.y, angle + Math.PI, headlen);
+        drawExportTip(octx, p2.x, p2.y, angle, headlen);
+
+        // Boîte jaune
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const valText = arr.value || '...';
+        octx.font = `bold ${Math.round(24 * sx)}px sans-serif`;
+        const tw = octx.measureText(valText).width;
+        const bw = Math.max(70 * sx, tw + 28 * sx);
+        const bh = 44 * sy;
+
+        octx.fillStyle = '#fef08a';
+        octx.strokeStyle = '#854d0e';
+        octx.lineWidth = 2 * sx;
+        octx.fillRect(midX - bw/2, midY - bh/2, bw, bh);
+        octx.strokeRect(midX - bw/2, midY - bh/2, bw, bh);
+
+        octx.fillStyle = '#000000';
+        octx.textAlign = 'center';
+        octx.textBaseline = 'middle';
+        octx.fillText(valText, midX, midY);
+
+        octx.restore();
+      });
+
+      const dl = document.createElement('a');
+      dl.download = `releve-facade-${Date.now()}.jpg`;
+      dl.href = out.toDataURL('image/jpeg', 0.92);
+      dl.click();
+    });
+
+    function drawExportTip(ctx, x, y, rad, len) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - len * Math.cos(rad - Math.PI / 6), y - len * Math.sin(rad - Math.PI / 6));
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - len * Math.cos(rad + Math.PI / 6), y - len * Math.sin(rad + Math.PI / 6));
+      ctx.stroke();
+    }
+  </script>
+</body>
+</html>
