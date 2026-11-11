@@ -25,7 +25,7 @@ footer{background:var(--pn);padding:8px;display:flex;flex-direction:column;gap:8
 #ig button.on{outline:3px solid #fff}
 [hidden]{display:none!important}
 </style></head><body>
-<header><div id="tabs"></div><label class="b">+ Photos<input id="fi" type="file" accept="image/*" multiple hidden></label></header>
+<header><div id="tabs"></div><button id="pre">Dessin préparé</button><label class="b">+ Photos<input id="fi" type="file" accept="image/*" multiple hidden></label></header>
 <main>
  <div id="wrap"><canvas id="cv"></canvas></div>
  <div id="empty"><label class="b">Ajouter des photos de la façade<input id="fi2" type="file" accept="image/*" multiple hidden></label><p>Vous repassez les arêtes sur la photo. L’appli en fait un dessin propre, avec une flèche le long de chaque arête pour y saisir la cote.</p></div>
@@ -56,8 +56,24 @@ async function add(files){
 }
 $('#fi').onchange=$('#fi2').onchange=e=>{add([...e.target.files]);e.target.value=''};
 
+/* --- dessins préparés (en cm, échelle 1,5 px/cm) --- */
+const P=(u,v)=>[110+u*1.5,140+v*1.5],R=(a,b,c,d)=>[P(a,b),P(c,b),P(c,d),P(a,d)];
+const PRESETS=[{name:'Lanfains',W:1660,H:1520,
+ shapes:[
+  {t:'mur',pts:[P(0,0),P(960,0),P(960,452),P(919,452),P(919,311.7),P(687,311.7),P(687,452),P(540,452),P(540,309.3),P(441,309.3),P(441,452),P(0,452)]},
+  {t:'ouv',pts:R(127,56,277,196)},{t:'ouv',pts:R(442,56,522,196)},{t:'ouv',pts:R(724,56,874,196)},{t:'ouv',pts:R(127,312,277,452)},
+  {t:'mur',pts:R(40,580,103,845)},{t:'mur',pts:R(380,580,443,845)}],
+ icons:[[...P(482,255),4],[...P(12,380),5]],
+ notes:[[330,45,'FACADE AVANT SUD'],[...P(780,254),'Bandeau entre étages'],[420,1250,'SAS 1'],[880,1250,'SAS 2'],[1230,1300,'2 panneaux amovibles collés en haut des SAS']]}];
+$('#pre').onclick=()=>{
+ const p=PRESETS[0],c=document.createElement('canvas');c.width=p.W;c.height=p.H;
+ const cl=a=>JSON.parse(JSON.stringify(a));
+ faces.push({name:p.name,src:c,shapes:cl(p.shapes).map(s=>({...s,closed:true,lab:{}})),icons:cl(p.icons),notes:cl(p.notes),order:[]});
+ cur=faces.length-1;bg=2;show();
+};
+
 function show(){
- $('#tabs').innerHTML=faces.map((f,i)=>`<button data-t="${i}" class="${i==cur?'on':''}">Face ${i+1}</button>`).join('');
+ $('#tabs').innerHTML=faces.map((f,i)=>`<button data-t="${i}" class="${i==cur?'on':''}">${f.name||'Face '+(i+1)}</button>`).join('');
  const f=F();$('#empty').hidden=!!f;$('#wrap').hidden=!f;$('#p').hidden=!f;if(!f)return;
  cv.width=f.src.width;cv.height=f.src.height;cv.style.width=zoom*100+'%';
  cv.style.touchAction=mode=='move'?'none':'manipulation';
