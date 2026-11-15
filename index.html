@@ -4,65 +4,71 @@
 <meta name="theme-color" content="#262b33">
 <title>Métré photo</title>
 <style>
-:root{--bg:#262b33;--pn:#323843;--pn2:#454c59;--ac:#c3d600;--tx:#f2f4f7;--mu:#9aa3b2;--rd:#ff5a36}
+:root{--bg:#262b33;--pn:#323843;--pn2:#454c59;--ac:#c3d600;--tx:#f2f4f7;--mu:#9aa3b2;--rd:#ff5a36;--or:#ff9800}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
 body{height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:16px system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
-button,input,select{font:inherit;color:inherit}
-button{background:var(--pn2);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;white-space:nowrap}
-button:active{filter:brightness(1.25)}
+button,input,select,textarea{font:inherit;color:inherit}
+button,.btn{background:var(--pn2);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button:active,.btn:active{filter:brightness(1.25)}
 button:disabled{opacity:.4}
-.pri{background:var(--ac);color:#1d2127;font-weight:700}
+.pri{background:var(--ac)!important;color:#1d2127!important;font-weight:700}
 .on{background:var(--ac)!important;color:#1d2127!important;font-weight:700}
 [hidden]{display:none!important}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column}
 .bar{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--pn);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.bar h1{font-size:19px;margin:0;flex:1}
+.bar h1{font-size:19px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar small{font-size:12px;color:var(--mu);font-weight:400}
 .grow{flex:1}
-/* accueil */
-#home .big{display:flex;gap:12px;padding:16px;flex-wrap:wrap}
-#home .big label{flex:1 1 220px;display:flex;align-items:center;justify-content:center;gap:10px;padding:26px 16px;border-radius:14px;font-size:20px;font-weight:700;cursor:pointer}
-#home .big label.cam{background:var(--ac);color:#1d2127}
-#home .big label.gal{background:var(--pn2)}
-#list{flex:1;overflow:auto;padding:0 16px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;align-content:start}
+.info{color:var(--mu);margin:0 16px 12px;line-height:1.45;font-size:14px}
+.acts{display:flex;gap:10px;padding:14px 16px;flex-wrap:wrap}
+.acts .big{flex:1 1 200px;padding:20px 14px;border-radius:14px;font-size:19px;font-weight:700}
+.grid{flex:1;overflow:auto;padding:0 16px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;align-content:start}
 .card{background:var(--pn);border-radius:12px;overflow:hidden;position:relative;cursor:pointer}
-.card img{width:100%;height:130px;object-fit:cover;display:block}
-.card div{padding:8px 10px}
-.card b{display:block;font-size:15px}
+.card img{width:100%;height:140px;object-fit:cover;display:block;background:#111}
+.card .cb{padding:8px 10px}
+.card b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card small{color:var(--mu)}
-.card button{position:absolute;top:6px;right:6px;padding:6px 9px;background:#000a}
-#home p.info{color:var(--mu);margin:0 16px 12px;line-height:1.45;font-size:14px}
-/* métré */
-#pname{background:none;font-weight:700;font-size:17px;padding:8px 6px;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
+.card .del{position:absolute;top:6px;right:6px;padding:6px 9px;background:#000a}
+.badge{position:absolute;left:6px;top:6px;background:#000c;color:#fff;border-radius:8px;padding:4px 8px;font-size:13px;display:flex;gap:6px;align-items:center}
+.badge.ok{background:#2e7d32}.badge.err{background:#c62828}
+.mini{width:14px;height:14px;border:3px solid #fff4;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite}
+.fold{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;background:var(--pn);border-radius:12px;position:relative}
+.fold .ic{font-size:30px}
+.fold b{display:block}
+.fold small{color:var(--mu)}
+/* photo */
 #work{flex:1;min-height:0;display:flex}
 #stage{flex:1;position:relative;min-width:0;background:#15181d}
 #cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
 #banner{position:absolute;left:10px;right:10px;top:10px;background:#000d;color:#fff;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px}
-#banner .spin{width:22px;height:22px;border-width:3px}
 #banner pre{margin:0;white-space:pre-wrap;font:13px system-ui;color:#ffb4a2;flex:1 1 100%;user-select:text;-webkit-user-select:text}
-.spin{border:4px solid #fff3;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite;flex:none}
+.spin{width:22px;height:22px;border:3px solid #fff3;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite;flex:none}
 @keyframes s{to{transform:rotate(360deg)}}
-#panel{width:330px;background:var(--pn);display:flex;flex-direction:column;padding:12px;gap:10px;overflow:auto}
-@media (orientation:portrait){#work{flex-direction:column}#panel{width:auto;padding:10px}}
+#panel{width:340px;background:var(--pn);display:flex;flex-direction:column;padding:12px;gap:9px;overflow:auto}
+@media (orientation:portrait){#work{flex-direction:column}#panel{width:auto;padding:10px;max-height:52dvh}}
+#tools{display:flex;gap:6px;flex-wrap:wrap}
+#tools button{padding:8px 10px;font-size:14px;flex:1 1 auto}
 #dLab{font-weight:700;font-size:17px;line-height:1.25}
 #dPos{color:var(--mu);font-size:13px}
-#dVal{background:#1d2127;border-radius:10px;padding:10px 14px;font-size:34px;font-weight:800;min-height:62px;display:flex;align-items:center;justify-content:space-between;border:2px solid var(--ac)}
+#dVal{background:#1d2127;border-radius:10px;padding:8px 14px;font-size:32px;font-weight:800;min-height:56px;display:flex;align-items:center;border:2px solid var(--ac)}
 #keys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-#keys button{font-size:24px;padding:12px 0;font-weight:700}
+#keys button{font-size:23px;padding:11px 0;font-weight:700}
 #keys .nav{font-size:18px}
-@media (orientation:portrait){#keys button{padding:9px 0;font-size:21px}#dVal{font-size:28px;min-height:52px}}
+@media (orientation:portrait){#keys button{padding:8px 0;font-size:20px}#dVal{font-size:26px;min-height:48px}}
 #mic.rec{background:var(--rd);color:#fff;animation:p 1s ease-in-out infinite}
 @keyframes p{50%{opacity:.6}}
 #sum{background:#1d2127;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.55}
 #sum b{color:var(--ac)}
+#noteBox{background:#fff59d;color:#222;border-radius:10px;padding:8px 10px;font-size:14px;white-space:pre-wrap;cursor:pointer;line-height:1.4}
 #editBar{display:flex;gap:6px;flex-wrap:wrap}
 #editBar p{margin:0;color:var(--mu);font-size:13px;flex:1 1 100%}
-dialog{background:var(--pn);color:var(--tx);border:0;border-radius:14px;padding:18px;width:min(560px,94vw);max-height:90dvh}
+dialog{background:var(--pn);color:var(--tx);border:0;border-radius:14px;padding:18px;width:min(580px,94vw);max-height:90dvh}
 dialog::backdrop{background:#000b}
 dialog h2{margin:0 0 8px;font-size:19px}
 dialog label{display:block;margin:12px 0 4px;color:var(--mu);font-size:13px}
-dialog input,dialog select{width:100%;background:#1d2127;border:1px solid #5a6270;border-radius:8px;padding:11px;user-select:text;-webkit-user-select:text}
+dialog input,dialog select,dialog textarea{width:100%;background:#1d2127;border:1px solid #5a6270;border-radius:8px;padding:11px;user-select:text;-webkit-user-select:text}
+dialog textarea{min-height:180px;resize:vertical;line-height:1.45}
 dialog p{color:var(--mu);font-size:14px;line-height:1.45;margin:6px 0}
 dialog a{color:var(--ac)}
 dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
@@ -70,27 +76,38 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000e;color:#fff;padding:10px 16px;border-radius:10px;font-size:15px;z-index:20;max-width:90vw;text-align:center;pointer-events:none}
 </style></head><body>
 
+<!-- ===== DOSSIERS ===== -->
 <section id="home" class="screen">
- <div class="bar"><h1>📐 Métré photo <small>version 5</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
- <div class="big">
-  <label class="cam">📷 Prendre une photo<input id="fCam" type="file" accept="image/*" capture="environment" hidden></label>
-  <label class="gal">🖼 Choisir une photo<input id="fGal" type="file" accept="image/*" hidden></label>
- </div>
+ <div class="bar"><h1>📐 Métré photo <small>version 7</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
+ <div class="acts"><button id="hNew" class="big pri">＋ Nouveau dossier client</button></div>
  <p class="info" id="hInfo"></p>
- <div id="list"></div>
+ <div id="folders" class="grid"></div>
 </section>
 
+<!-- ===== UN DOSSIER ===== -->
+<section id="folder" class="screen" hidden>
+ <div class="bar"><button id="fBack">←</button><h1 id="fName"></h1><button id="fRen">Renommer</button><button id="fDel">🗑</button></div>
+ <div class="acts">
+  <label class="btn big pri">📷 Photo<input id="fCam" type="file" accept="image/*" capture="environment" hidden></label>
+  <label class="btn big">🖼 Galerie<input id="fGal" type="file" accept="image/*" multiple hidden></label>
+  <button id="fSend" class="big">✉ Envoyer (PDF)</button>
+ </div>
+ <p class="info" id="fInfo"></p>
+ <div id="photos" class="grid"></div>
+</section>
+
+<!-- ===== UNE PHOTO ===== -->
 <section id="planv" class="screen" hidden>
  <div class="bar">
   <button id="back">←</button>
-  <button id="pname"></button>
-  <span class="grow"></span>
+  <h1 id="pname"></h1>
+  <button id="pPrev">◀</button><span id="pIdx" style="color:var(--mu);font-size:14px"></span><button id="pNext">▶</button>
   <button id="bEdit">✎ Modifier</button>
-  <button id="bShare" class="pri">⇪ Partager</button>
  </div>
  <div id="work">
   <div id="stage"><canvas id="cv"></canvas><div id="banner" hidden></div></div>
   <div id="panel">
+   <div id="tools"><button data-add="ligne">― Ligne / arrêt</button><button data-add="point">◯ Point</button><button data-add="cote">↔ Cote</button><button id="bNotes">📝 Notes</button></div>
    <div><div id="dPos"></div><div id="dLab"></div></div>
    <div id="dVal"><b id="dTxt"></b></div>
    <div id="keys">
@@ -100,24 +117,33 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
     <button>,</button><button>0</button><button class="pri nav" data-k="next" style="grid-column:span 2">Suivant ▶</button>
    </div>
    <div id="editBar" hidden>
-    <p>Glissez les poignées blanches pour recaler les coins, les fenêtres et les points. Touchez une fenêtre ou un point pour le renommer ou le supprimer.</p>
-    <button data-add="fenetre">+ Fenêtre</button><button data-add="porte">+ Porte</button><button data-add="point">+ Point</button><button data-add="cote">+ Cote</button>
+    <p>Glissez les poignées blanches pour recaler. Touchez un élément pour le renommer ou le supprimer.</p>
+    <button data-add="fenetre">+ Fenêtre</button><button data-add="porte">+ Porte</button>
     <button id="bShape">Forme de la face</button><button id="bAddFace">+ Face</button><button id="bDelFace">Suppr. face</button>
     <button id="bRedo">↻ Refaire l’analyse</button><button id="bEditOk" class="pri">Terminé</button>
    </div>
+   <div id="noteBox" hidden></div>
    <div id="sum"></div>
   </div>
  </div>
 </section>
 
 <dialog id="dSet">
- <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 5)</small></h2>
+ <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 7)</small></h2>
  <p>L’analyse des photos se fait avec l’IA Gemini de Google. Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> puis collez-la ici. Elle reste enregistrée sur cet appareil uniquement.</p>
- <p>Offre gratuite : nombre d’analyses limité par jour, et Google peut utiliser les photos envoyées pour améliorer ses services.</p>
+ <p>Offre gratuite : nombre d’analyses limité par minute et par jour, et Google peut utiliser les photos envoyées pour améliorer ses services.</p>
  <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza… ou AQ.…" autocomplete="off">
- <label for="kModel">Modèle (choisissez dans la liste ou tapez son nom exact). Les « Flash » sont les plus rapides.</label><input id="kModel" list="kModels" autocomplete="off" spellcheck="false"><datalist id="kModels"></datalist>
+ <label for="kModel">Modèle. Prenez un « Flash » : quelques secondes. Les « Pro » sont très lents (1 à 5 minutes).</label><input id="kModel" list="kModels" autocomplete="off" spellcheck="false"><datalist id="kModels"></datalist>
+ <label for="kMail">Adresse mail habituelle d’envoi (facultatif)</label><input id="kMail" type="email" placeholder="bureau@exemple.fr" autocomplete="off">
  <p id="kMsg"></p>
  <div class="act"><button id="kCancel">Annuler</button><button id="kTest">Tester la clé</button><button id="kOk" class="pri">Enregistrer</button></div>
+</dialog>
+
+<dialog id="dNotes">
+ <h2>📝 Notes de la photo</h2>
+ <p>Ce que vous voulez retenir : demandes du client, arrêts d’isolant, accès, échafaudage… Ces notes apparaissent dans le PDF.</p>
+ <textarea id="nText" placeholder="Ex. : arrêt isolant à 2,50 m côté voisin, demande du client"></textarea>
+ <div class="act"><button id="nMic">🎤 Dicter</button><span class="grow"></span><button id="nCancel">Annuler</button><button id="nOk" class="pri">Enregistrer</button></div>
 </dialog>
 <div id="toast" hidden></div>
 
@@ -135,39 +161,108 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const settings=(()=>{try{return JSON.parse(localStorage.getItem('metre2.settings')||'{}')}catch(_){return{}}})();
 function saveSettings(){try{localStorage.setItem('metre2.settings',JSON.stringify(settings))}catch(_){}}
 
-/* ================= stockage ================= */
+
+/* ================= stockage : dossiers et photos ================= */
 let dbp;
-function db(){return dbp||(dbp=new Promise((ok,ko)=>{const r=indexedDB.open('metre-photo-v5',1);r.onupgradeneeded=()=>r.result.createObjectStore('plans',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)}))}
-async function dbDo(fn){try{const d=await db();return await new Promise((ok,ko)=>{const t=d.transaction('plans','readwrite'),r=fn(t.objectStore('plans'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ko(t.error)})}catch(e){console.warn(e)}}
-let plans=[],plan=null;
-let saveT;function save(p=plan){if(!p)return;clearTimeout(saveT);saveT=setTimeout(()=>dbDo(st=>st.put({id:p.id,name:p.name,t:p.t,blob:p.blob,w:p.w,h:p.h,faces:p.faces})),250)}
+function db(){return dbp||(dbp=new Promise((ok,ko)=>{const r=indexedDB.open('metre-v7',1);
+ r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('folders',{keyPath:'id'});d.createObjectStore('photos',{keyPath:'id'})};
+ r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)}))}
+async function tx(store,fn){try{const d=await db();return await new Promise((ok,ko)=>{const t=d.transaction(store,'readwrite'),r=fn(t.objectStore(store));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ko(t.error)})}catch(e){console.warn(e)}}
+let folders=[],photos=[],folder=null,plan=null;
+const saveT={};
+function save(p=plan){if(!p)return;clearTimeout(saveT[p.id]);saveT[p.id]=setTimeout(()=>tx('photos',st=>st.put({id:p.id,fid:p.fid,name:p.name,t:p.t,blob:p.blob,w:p.w,h:p.h,faces:p.faces,man:p.man,notes:p.notes,done:p.done})),250)}
+function saveFolder(f=folder){if(f)tx('folders',st=>st.put({id:f.id,name:f.name,t:f.t}))}
+const photosOf=f=>photos.filter(p=>p.fid==f.id).sort((a,b)=>a.t-b.t);
+function initPhoto(p){p.faces=p.faces||[];p.man=p.man||{};for(const k of['pts','ex','lines'])p.man[k]=p.man[k]||[];p.man.vals=p.man.vals||{};
+ p.notes=p.notes||'';p.url=p.url||URL.createObjectURL(p.blob);p.st=p.done?'done':'todo';return p}
+// reprise des métrés de la version 5/6
+async function migrateOld(){
+ if(localStorage.getItem('metre.migr7'))return;localStorage.setItem('metre.migr7','1');
+ const old=await new Promise(ok=>{try{const r=indexedDB.open('metre-photo-v5',1);r.onupgradeneeded=()=>r.result.createObjectStore('plans',{keyPath:'id'});
+  r.onsuccess=()=>{try{const g=r.result.transaction('plans').objectStore('plans').getAll();g.onsuccess=()=>ok(g.result||[]);g.onerror=()=>ok([])}catch(_){ok([])}};r.onerror=()=>ok([])}catch(_){ok([])}});
+ if(!old.length)return;
+ const f={id:uid(),name:'Métrés précédents',t:Date.now()};folders.push(f);saveFolder(f);
+ for(const o of old){const p=initPhoto({id:o.id,fid:f.id,name:o.name,t:o.t,blob:o.blob,w:o.w,h:o.h,faces:o.faces||[],done:true});photos.push(p);save(p)}}
 
-/* ================= accueil ================= */
-function showHome(){
- stopDict();plan=null;$('#home').hidden=false;$('#planv').hidden=true;
- $('#hInfo').innerHTML=settings.key?'Prenez la façade en entier. Gemini pose les flèches de cotes et entoure les points singuliers directement sur la photo ; vous tapez ou dictez les mesures.'
+/* ================= navigation ================= */
+function show(id){for(const s of['home','folder','planv'])$('#'+s).hidden=s!=id}
+function refresh(){if(!$('#home').hidden)renderHome();if(!$('#folder').hidden)renderFolder();if(!$('#planv').hidden&&plan)render()}
+function progress(ps){const ds=ps.flatMap(allDims);return{n:ds.filter(d=>d.v).length,t:ds.length}}
+
+/* ---- dossiers ---- */
+function renderHome(){
+ $('#hInfo').innerHTML=settings.key?'Un dossier par client. Dans le dossier, prenez autant de photos que nécessaire : chacune est analysée aussitôt, en parallèle, pendant que vous saisissez les cotes des autres.'
   :'⚠️ Renseignez d’abord votre clé Gemini (bouton ⚙ en haut à droite).';
- $('#list').innerHTML=plans.slice().sort((a,b)=>b.t-a.t).map(p=>{const ds=allDims(p),n=ds.filter(d=>d.v).length;
-  return`<div class="card" data-id="${p.id}"><img src="${p.url}" alt=""><button data-del="${p.id}" title="Supprimer">🗑</button><div><b>${esc(p.name)}</b><small>${new Date(p.t).toLocaleDateString('fr-FR')} · ${n}/${ds.length} cotes</small></div></div>`}).join('');
-}
-$('#list').onclick=async e=>{
- const del=e.target.closest('[data-del]');
- if(del){e.stopPropagation();const p=plans.find(x=>x.id==del.dataset.del);if(p&&confirm('Supprimer « '+p.name+' » ?')){plans=plans.filter(x=>x!=p);await dbDo(st=>st.delete(p.id));showHome()}return}
- const c=e.target.closest('.card');if(c)openPlan(plans.find(x=>x.id==c.dataset.id));
-};
+ $('#folders').innerHTML=folders.slice().sort((a,b)=>b.t-a.t).map(f=>{const ps=photosOf(f),pr=progress(ps),run=ps.filter(p=>p.st=='run'||p.st=='wait').length;
+  return`<div class="card" data-f="${f.id}">${ps[0]?`<img src="${ps[ps.length-1].url}" alt="">`:'<div style="height:140px;display:flex;align-items:center;justify-content:center;font-size:48px;background:#1d2127">📁</div>'}
+  <button class="del" data-delf="${f.id}" title="Supprimer">🗑</button>${run?`<span class="badge"><span class="mini"></span>${run} en analyse</span>`:''}
+  <div class="cb"><b>📁 ${esc(f.name)}</b><small>${new Date(f.t).toLocaleDateString('fr-FR')} · ${ps.length} photo(s) · ${pr.n}/${pr.t} cotes</small></div></div>`}).join('')||'<p class="info">Aucun dossier pour le moment.</p>'}
+$('#folders').onclick=async e=>{
+ const del=e.target.closest('[data-delf]');
+ if(del){e.stopPropagation();const f=folders.find(x=>x.id==del.dataset.delf);if(f&&confirm('Supprimer le dossier « '+f.name+' » et toutes ses photos ?'))await deleteFolder(f);return}
+ const c=e.target.closest('[data-f]');if(c)openFolder(folders.find(x=>x.id==c.dataset.f))};
+async function deleteFolder(f){for(const p of photosOf(f)){if(p.ac)p.ac.abort();await tx('photos',st=>st.delete(p.id))}photos=photos.filter(p=>p.fid!=f.id);folders=folders.filter(x=>x!=f);await tx('folders',st=>st.delete(f.id));folder=null;show('home');renderHome()}
+$('#hNew').onclick=()=>{const n=prompt('Nom du client (ou adresse du chantier)');if(!n||!n.trim())return;const f={id:uid(),name:n.trim(),t:Date.now()};folders.push(f);saveFolder(f);openFolder(f)};
 $('#hSet').onclick=()=>openSettings();
-for(const id of['#fCam','#fGal'])$(id).onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)newFromPhoto(f)};
 
-async function newFromPhoto(file){
- let bm;try{bm=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(_){toast('Image illisible');return}
- const k=Math.min(1,2000/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);
- c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
- const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
- const p={id:uid(),name:'Métré '+(plans.length+1),t:Date.now(),blob,w:c.width,h:c.height,faces:[],url:URL.createObjectURL(blob)};
- plans.push(p);save(p);await openPlan(p);
- if(!settings.key){openSettings(()=>analyse(p));return}
- analyse(p);
-}
+/* ---- un dossier ---- */
+function openFolder(f){folder=f;plan=null;stopDict();show('folder');renderFolder();for(const p of photosOf(f))if(p.st=='todo'&&!p.faces.length&&settings.key)enqueue(p)}
+function badge(p){
+ if(p.st=='run')return`<span class="badge"><span class="mini"></span>${Math.round((Date.now()-p.t0)/1000)} s</span>`;
+ if(p.st=='wait')return'<span class="badge">⏳ en attente</span>';
+ if(p.st=='err')return'<span class="badge err">⚠ erreur</span>';
+ const ds=allDims(p),n=ds.filter(d=>d.v).length;if(!ds.length)return'<span class="badge">à analyser</span>';
+ return`<span class="badge ${n==ds.length?'ok':''}">${n==ds.length?'✓ ':''}${n}/${ds.length} cotes</span>`}
+function renderFolder(){
+ if(!folder)return;const ps=photosOf(folder),pr=progress(ps);
+ $('#fName').textContent='📁 '+folder.name;
+ $('#fInfo').textContent=ps.length?`${ps.length} photo(s) · ${pr.n}/${pr.t} cotes saisies. Touchez une photo pour saisir ses cotes.`:'Ajoutez les photos de la maison : 📷 pour en prendre une (recommencez pour chaque façade), ou 🖼 pour en choisir plusieurs.';
+ $('#photos').innerHTML=ps.map((p,i)=>`<div class="card" data-p="${p.id}"><img src="${p.url}" alt="">${badge(p)}<button class="del" data-delp="${p.id}" title="Supprimer">🗑</button>
+  <div class="cb"><b>${esc(p.name)}</b><small>${p.notes?'📝 notes · ':''}${p.faces.length} face(s)</small></div></div>`).join('')}
+$('#photos').onclick=async e=>{
+ const del=e.target.closest('[data-delp]');
+ if(del){e.stopPropagation();const p=photos.find(x=>x.id==del.dataset.delp);if(p&&confirm('Supprimer « '+p.name+' » ?')){if(p.ac)p.ac.abort();photos=photos.filter(x=>x!=p);await tx('photos',st=>st.delete(p.id));renderFolder()}return}
+ const c=e.target.closest('[data-p]');if(c)openPhoto(photos.find(x=>x.id==c.dataset.p))};
+$('#fBack').onclick=()=>{folder=null;show('home');renderHome()};
+$('#fRen').onclick=()=>{const n=prompt('Nom du dossier',folder.name);if(n&&n.trim()){folder.name=n.trim();saveFolder();renderFolder()}};
+$('#fDel').onclick=async()=>{if(confirm('Supprimer le dossier « '+folder.name+' » et toutes ses photos ?'))await deleteFolder(folder)};
+for(const id of['#fCam','#fGal'])$(id).onchange=e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)addPhotos(fs)};
+async function addPhotos(files){
+ const f=folder;let n=photosOf(f).length;
+ for(const file of files){
+  let bm;try{bm=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(_){toast('Image illisible');continue}
+  const k=Math.min(1,2000/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);
+  c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+  const p=initPhoto({id:uid(),fid:f.id,name:'Photo '+(++n),t:Date.now(),blob,w:c.width,h:c.height});
+  photos.push(p);save(p);enqueue(p)}
+ renderFolder();
+ if(!settings.key)openSettings(()=>photosOf(f).forEach(p=>{if(p.st=='todo')enqueue(p)}));
+ else toast(files.length>1?files.length+' photos ajoutées, analyse en cours':'Photo ajoutée, analyse en cours. Vous pouvez en prendre une autre.')}
+
+/* ================= analyses en parallèle ================= */
+const queue=[],running=new Set(),MAXC=3;
+function enqueue(p){if(p.st=='run'||p.st=='wait')return;p.st='wait';p.err=null;queue.push(p);refresh();pump()}
+function pump(){while(running.size<MAXC&&queue.length){const p=queue.shift();if(p.st=='wait')runAnalysis(p)}}
+async function runAnalysis(p){
+ if(!settings.key){p.st='todo';refresh();return}
+ running.add(p);p.st='run';p.t0=Date.now();p.ac=new AbortController();
+ const prevFaces=p.faces,prevVals=p.faces.map(f=>f.vals);p.faces=[];refresh();
+ const model=settings.model||DEFAULT_MODEL;let info='';
+ const apply=o=>{const fs=sanitize(o);fs.forEach((f,i)=>{const old=p.faces[i]||{};f.vals=old.vals||prevVals[i]||{}});p.faces=fs;
+  if(plan===p){if(!sel||!allDims(p).some(d=>d.key==sel)){const d=allDims(p).find(x=>!x.v);sel=d&&d.key}render()}};
+ try{
+  const out=await gemini(p.blob,p.ac.signal,o=>{if(p.st=='run')apply(o)},i=>info=i);
+  apply(out);if(!p.faces.length)throw new GemErr('Aucune façade reconnue sur cette photo.','');
+  p.st='done';p.done=true;save(p);
+  if(plan===p)toast(`${allDims(p).length} cotes placées en ${Math.round((Date.now()-p.t0)/1000)} s (${model}, ${info})`,3500);
+ }catch(e){
+  if(!p.faces.length)p.faces=prevFaces;
+  if(e.name=='AbortError')p.st=p.faces.length?'done':'todo';
+  else{p.st='err';p.err=e;p.errTxt=(e.detail||e.message)+' · '+navigator.userAgent}
+  save(p);
+ }finally{running.delete(p);p.ac=null;refresh();pump()}}
+setInterval(()=>{if(running.size)refresh()},1000);
 
 /* ================= Gemini ================= */
 // Coordonnées Gemini : [y, x] normalisés 0–1000 (convention native de Gemini)
@@ -199,13 +294,30 @@ const STUDIO=m=>`${API}/models/${encodeURIComponent(m)}:generateContent`;
 const VERTEX=m=>`https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(m)}:generateContent`;
 const provider=()=>settings.provider||'studio';
 class GemErr extends Error{constructor(msg,detail){super(msg);this.detail=detail}}
-function thinkingFast(model){const v=+((model.match(/gemini-(\d+(?:\.\d+)?)/)||[])[1]||0);
- if(v>=3)return{thinkingLevel:'low'};if(/flash/.test(model))return{thinkingBudget:0};return{thinkingBudget:128}}
+// réglages de réflexion du plus rapide au plus lent ; Google refuse ceux qu'un modèle ne connaît pas (on passe au suivant)
+function thinkingOptions(model){const v=+((model.match(/gemini-(\d+(?:\.\d+)?)/)||[])[1]||0);
+ if(v>=3)return[{thinkingLevel:'minimal'},{thinkingLevel:'low'},{thinkingBudget:0}];
+ if(/flash/.test(model))return[{thinkingBudget:0}];return[{thinkingBudget:128}]}
+const isSlowModel=m=>/pro/.test(m||'')&&!/flash/.test(m||'');
+// lit le flux SSE de Gemini ; onText reçoit le texte reçu jusque-là
+async function readStream(r,onText){
+ let text='',finish='',feedback=null,buf='';
+ const handle=line=>{line=line.trim();if(!line.startsWith('data:'))return;let js;try{js=JSON.parse(line.slice(5))}catch(_){return}
+  if(js.error)throw new GemErr('Gemini : '+(js.error.message||'erreur'),JSON.stringify(js.error).slice(0,300));
+  if(js.promptFeedback&&js.promptFeedback.blockReason)feedback=js.promptFeedback;
+  const c=(js.candidates||[])[0];if(!c)return;if(c.finishReason)finish=c.finishReason;
+  for(const p of (c.content&&c.content.parts)||[])if(p.text&&!p.thought)text+=p.text;
+  onText&&onText(text)};
+ if(r.body&&r.body.getReader){const rd=r.body.getReader(),dec=new TextDecoder();
+  for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;while((i=buf.indexOf('\n'))>=0){handle(buf.slice(0,i));buf=buf.slice(i+1)}}
+  handle(buf)}
+ else(await r.text()).split('\n').forEach(handle);
+ return{text,finish,feedback}}
 // envoie la requête ; essaie des variantes plus simples si Google refuse un réglage
-async function callGemini(parts,signal,{key=settings.key,model=settings.model||DEFAULT_MODEL,prov=provider(),light=false}={}){
- const url=prov=='vertex'?VERTEX(model):STUDIO(model);
- const base={responseMimeType:'application/json',responseSchema:SCHEMA,maxOutputTokens:16384};
- const variants=light?[{}]:[{...base,thinkingConfig:thinkingFast(model)},base,{responseMimeType:'application/json',maxOutputTokens:16384,_help:1},{_help:1}];
+async function callGemini(parts,signal,{key=settings.key,model=settings.model||DEFAULT_MODEL,prov=provider(),light=false,onText=null,onInfo=null}={}){
+ const url=(prov=='vertex'?VERTEX(model):STUDIO(model)).replace(':generateContent',light?':generateContent':':streamGenerateContent?alt=sse');
+ const base={responseMimeType:'application/json',responseSchema:SCHEMA,maxOutputTokens:12000};
+ const variants=light?[{}]:[...thinkingOptions(model).map(t=>({...base,thinkingConfig:t})),base,{responseMimeType:'application/json',maxOutputTokens:12000,_help:1},{_help:1}];
  let last=null;
  for(const v of variants){
   const gc={...v};delete gc._help;
@@ -214,11 +326,14 @@ async function callGemini(parts,signal,{key=settings.key,model=settings.model||D
    let r,data={};
    try{r=await fetch(url,{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:ps}],...(Object.keys(gc).length?{generationConfig:gc}:{})})})}
    catch(e){if(e.name=='AbortError')throw e;throw new GemErr('Pas de connexion à Gemini (Internet coupé ?).',String(e))}
+   if(r.ok){onInfo&&onInfo(gc.thinkingConfig?JSON.stringify(gc.thinkingConfig).replace(/[{}"]/g,''):'réflexion par défaut');
+    if(light){try{data=await r.json()}catch(_){}return data}
+    return await readStream(r,onText)}
    try{data=await r.json()}catch(_){}
-   if(r.ok)return data;
    const m=(data.error&&data.error.message)||('HTTP '+r.status),st=(data.error&&data.error.status)||'';
    last={status:r.status,m,st,detail:`HTTP ${r.status} ${st} · modèle ${model} · ${prov=='vertex'?'Google Cloud':'AI Studio'} · ${m}`};
-   if(r.status>=500||(r.status==429&&attempt==0)){await sleep(2000*(attempt+1));continue}
+   if(r.status>=500){await sleep(1500*(attempt+1));continue}
+   if(r.status==429&&attempt<2&&!/per day|PerDay|daily/i.test(m)){await sleep(6000*(attempt+1));continue}
    break}
   if(!last)continue;
   if(/API key|API_KEY|UNAUTHENTICATED|PERMISSION_DENIED/i.test(last.m+last.st)||last.status==401||last.status==403)throw new GemErr('Clé refusée par Google : '+last.m,last.detail);
@@ -227,18 +342,28 @@ async function callGemini(parts,signal,{key=settings.key,model=settings.model||D
   if(last.status!=400)throw new GemErr('Gemini : '+last.m,last.detail);
  }
  throw new GemErr('Gemini : '+(last?last.m:'erreur inconnue'),last&&last.detail)}
+// JSON incomplet (en cours de réception) -> objet partiel lisible
+function partialJSON(t){const i=t.indexOf('{');if(i<0)return null;t=t.slice(i);
+ const st=[];let inS=false,es=false,cut=-1,cutSt=null;
+ for(let k=0;k<t.length;k++){const ch=t[k];
+  if(inS){if(es)es=false;else if(ch=='\\')es=true;else if(ch=='"')inS=false;continue}
+  if(ch=='"')inS=true;else if(ch=='{'||ch=='[')st.push(ch=='{'?'}':']');
+  else if(ch=='}'||ch==']'){st.pop();cut=k;cutSt=st.slice()}
+  else if(ch==','){cut=k-1;cutSt=st.slice()}}
+ if(cut<0)return null;try{return JSON.parse(t.slice(0,cut+1)+cutSt.reverse().join(''))}catch(_){return null}}
 async function imgB64(blob){
- const bm=await createImageBitmap(blob),k=Math.min(1,1280/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
+ const bm=await createImageBitmap(blob),k=Math.min(1,1024/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
  c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
  return c.toDataURL('image/jpeg',.82).split(',')[1]}
-async function gemini(blob,signal){
- const data=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal);
- if(data.promptFeedback&&data.promptFeedback.blockReason)throw new GemErr('Gemini a refusé la photo ('+data.promptFeedback.blockReason+').',JSON.stringify(data.promptFeedback));
- const cand=(data.candidates||[])[0];if(!cand)throw new GemErr('Réponse vide de Gemini.',JSON.stringify(data).slice(0,400));
- const txt=((cand.content&&cand.content.parts)||[]).filter(p=>!p.thought).map(p=>p.text||'').join('');
- if(!txt)throw new GemErr('Réponse vide de Gemini ('+(cand.finishReason||'?')+').',JSON.stringify(cand).slice(0,400));
+async function gemini(blob,signal,onPartial,onInfo){
+ let lastLen=0,lastT=0;
+ const res=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal,{onInfo,onText:t=>{
+  const now=Date.now();if(onPartial&&t.length-lastLen>40&&now-lastT>250){lastLen=t.length;lastT=now;const o=partialJSON(t);if(o)onPartial(o)}}});
+ if(res.feedback)throw new GemErr('Gemini a refusé la photo ('+res.feedback.blockReason+').',JSON.stringify(res.feedback));
+ const txt=res.text;if(!txt)throw new GemErr('Réponse vide de Gemini ('+(res.finish||'?')+').','');
  const a=txt.indexOf('{'),b=txt.lastIndexOf('}');
- try{return JSON.parse(txt.slice(a,b+1))}catch(_){throw new GemErr(cand.finishReason=='MAX_TOKENS'?'Réponse coupée (trop d’éléments). Réessayez.':'Réponse illisible. Réessayez.',txt.slice(0,400))}}
+ try{return JSON.parse(txt.slice(a,b+1))}catch(_){const o=partialJSON(txt);if(o&&o.faces&&o.faces.length)return o;
+  throw new GemErr(res.finish=='MAX_TOKENS'?'Réponse coupée (trop d’éléments). Réessayez.':'Réponse illisible. Réessayez.',txt.slice(0,400))}}
 // conversion vers [x, y] 0-1000
 const cl=v=>Math.min(1000,Math.max(0,+v||0));
 const yx=a=>Array.isArray(a)&&a.length>=2&&Number.isFinite(+a[0])&&Number.isFinite(+a[1])?[cl(a[1]),cl(a[0])]:null;
@@ -250,41 +375,15 @@ function sanitize(out){
   let shape=['rectangle','pignon','appentis'].includes(f.shape)?f.shape:'rectangle',apex=yx(f.apex);
   if(shape=='pignon'&&(!apex||(apex[0]==0&&apex[1]==0)||apex[1]>Math.min(tl[1],tr[1])-5))shape='rectangle';
   if(shape!='pignon')apex=null;
-  const ops=(f.openings||[]).map(o=>{const b=o.box_2d;if(!Array.isArray(b)||b.length<4)return null;const[y1,x1,y2,x2]=b.map(cl);
-   return Math.abs(x2-x1)<3||Math.abs(y2-y1)<3?null:{id:uid(),label:String(o.label||'Ouverture'),kind:o.kind||'fenetre',x1:Math.min(x1,x2),y1:Math.min(y1,y2),x2:Math.max(x1,x2),y2:Math.max(y1,y2)}}).filter(Boolean);
-  const pts=(f.points||[]).map(p=>{const q=yx(p.point);return q&&{id:uid(),label:String(p.label||'Point'),x:q[0],y:q[1]}}).filter(Boolean);
-  const ex=(f.extra_dims||[]).map(d=>{const a=yx(d.start),b=yx(d.end);return a&&b&&Math.hypot(b[0]-a[0],b[1]-a[1])>5?{id:uid(),label:String(d.label||'Cote'),a,b}:null}).filter(Boolean);
-  faces.push({id:uid(),name:String(f.name||'Face '+(faces.length+1)),shape,bl,br,tr,tl,apex,ops,pts,ex,vals:{}});
+  const fi=faces.length;
+  const ops=(f.openings||[]).map((o,j)=>{const b=o.box_2d;if(!Array.isArray(b)||b.length<4)return null;const[y1,x1,y2,x2]=b.map(cl);
+   return Math.abs(x2-x1)<3||Math.abs(y2-y1)<3?null:{id:'o'+fi+'_'+j,label:String(o.label||'Ouverture'),kind:o.kind||'fenetre',x1:Math.min(x1,x2),y1:Math.min(y1,y2),x2:Math.max(x1,x2),y2:Math.max(y1,y2)}}).filter(Boolean);
+  const pts=(f.points||[]).map((p,j)=>{const q=yx(p.point);return q&&{id:'p'+fi+'_'+j,label:String(p.label||'Point'),x:q[0],y:q[1]}}).filter(Boolean);
+  const ex=(f.extra_dims||[]).map((d,j)=>{const a=yx(d.start),b=yx(d.end);return a&&b&&Math.hypot(b[0]-a[0],b[1]-a[1])>5?{id:'x'+fi+'_'+j,label:String(d.label||'Cote'),a,b}:null}).filter(Boolean);
+  faces.push({id:'f'+fi,name:String(f.name||'Face '+(faces.length+1)),shape,bl,br,tr,tl,apex,ops,pts,ex,vals:{}});
  }
  return faces}
 function defaultFace(n,x0=300,x1=700){return{id:uid(),name:'Face '+n,shape:'rectangle',bl:[x0,800],br:[x1,800],tr:[x1,350],tl:[x0,350],apex:null,ops:[],pts:[],ex:[],vals:{}}}
-
-let abortC=null,lastErr='',busy=false;
-function banner(html){const b=$('#banner');if(!html){b.hidden=true;return}b.innerHTML=html;b.hidden=false}
-async function analyse(p){
- if(plan!==p)await openPlan(p);
- busy=true;abortC=new AbortController();render();
- banner('<div class="spin" style="width:22px;height:22px"></div><span class="grow">Gemini pose les flèches sur la photo…</span><button id="bnCancel">Annuler</button>');
- $('#bnCancel').onclick=()=>abortC.abort();
- const t0=Date.now();
- try{
-  const faces=sanitize(await gemini(p.blob,abortC.signal));
-  if(!faces.length)throw new GemErr('Aucune façade reconnue sur cette photo.','');
-  p.faces=faces;save(p);busy=false;banner(null);
-  if(plan===p){const d=allDims(p).find(x=>!x.v);sel=d&&d.key;render()}
-  toast(`${allDims(p).length} cotes placées en ${Math.round((Date.now()-t0)/1000)} s`);
- }catch(e){
-  busy=false;render();
-  if(e.name=='AbortError'){banner('<span class="grow">Analyse annulée.</span><button id="bnRetry" class="pri">Relancer</button><button id="bnManual">Placer à la main</button>');}
-  else{lastErr=(e.detail||e.message)+' · '+navigator.userAgent;
-   banner(`<span class="grow"><b>L’analyse n’a pas abouti.</b></span><button id="bnRetry" class="pri">Réessayer</button><button id="bnManual">Placer à la main</button><button id="bnSet">⚙</button><button id="bnCopy">Copier le détail</button><pre>${esc(e.message)}${e.detail&&e.detail!=e.message?'\n'+esc(e.detail):''}</pre>`);
-   $('#bnSet').onclick=()=>openSettings(()=>analyse(p));
-   $('#bnCopy').onclick=async()=>{try{await navigator.clipboard.writeText(lastErr);toast('Détail copié (il ne contient pas votre clé)')}catch(_){prompt('Copiez ce texte :',lastErr)}}}
-  $('#bnRetry').onclick=()=>settings.key?analyse(p):openSettings(()=>analyse(p));
-  $('#bnManual').onclick=()=>{banner(null);if(!p.faces.length)p.faces=[defaultFace(1)];save(p);const d=allDims(p)[0];sel=d&&d.key;editMode(true)};
- }
-}
-
 /* ================= cotes ================= */
 // valeur saisie -> cm ("3,70" = mètres)
 function cm(v){if(v==null||v==='')return NaN;const s=String(v).trim().replace(/\s/g,'');const n=parseFloat(s.replace(',','.'));if(!Number.isFinite(n))return NaN;return /[.,]\d/.test(s)?n*100:n}
@@ -303,7 +402,6 @@ function dimsOfFace(f,fi){
   mk('h:'+o.id,'Hauteur '+o.label,[o.x2,o.y1],[o.x2,o.y2],oc,13)}
  for(const e of f.ex)mk('x:'+e.id,e.label,e.a,e.b,null,0);
  return L}
-function allDims(p){return p.faces.flatMap((f,i)=>dimsOfFace(f,i))}
 function surfaces(f){
  const W=cm(f.vals.W),H=cm(f.vals.H),R=cm(f.vals.R);if(!(W>0&&H>0))return null;
  let brut=W*H,approx=false;
@@ -312,7 +410,6 @@ function surfaces(f){
  let ouv=0;for(const o of f.ops){const w=cm(f.vals['w:'+o.id]),h=cm(f.vals['h:'+o.id]);if(w>0&&h>0)ouv+=w*h;else approx=true}
  return{brut:brut/1e4,ouv:ouv/1e4,net:(brut-ouv)/1e4,approx}}
 const m2=v=>v.toFixed(2).replace('.',',')+' m²';
-
 /* ================= dessin sur la photo ================= */
 const C={h:'#1e88e5',v:'#2ea043',o:'#a855f7',sel:'#ff1744',pt:'#ff3d1f',op:'#4fc3f7'};
 function arrow(c,x,y,ux,uy,z){c.beginPath();c.moveTo(x,y);c.lineTo(x-ux*z-uy*z*.38,y-uy*z+ux*z*.38);c.lineTo(x-ux*z+uy*z*.38,y-uy*z-ux*z*.38);c.closePath();c.fill()}
@@ -320,48 +417,63 @@ function pill(c,x,y,txt,s,fill,stroke,lw){c.font=`800 ${15*s}px system-ui`;const
  c.fillStyle=fill;c.strokeStyle=stroke;c.lineWidth=lw*s;c.beginPath();c.roundRect?c.roundRect(x-w/2,y-h/2,w,h,6*s):c.rect(x-w/2,y-h/2,w,h);c.fill();c.stroke();
  c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,x,y+.5*s);return{x:x-w/2,y:y-h/2,w,h}}
 function label(c,x,y,txt,s,col,align='left'){c.font=`700 ${12*s}px system-ui`;c.textAlign=align;c.textBaseline='middle';c.lineJoin='round';c.lineWidth=3.5*s;c.strokeStyle='#000c';c.strokeText(txt,x,y);c.fillStyle=col;c.fillText(txt,x,y)}
+function handle(c,[x,y],s,col,hits,ref){c.fillStyle='#fff';c.strokeStyle=col;c.lineWidth=3*s;c.beginPath();c.arc(x,y,8*s,0,7);c.fill();c.stroke();
+ hits.push({...ref,x:x-16,y:y-16,w:32,h:32,handle:1})}
+
+
+// cotes ajoutées à la main (hors faces détectées)
+function dimsOfMan(p){return p.man.ex.map(e=>({key:'m|x:'+e.id,k:'x:'+e.id,fi:-1,label:e.label,a:e.a,b:e.b,ref:null,off:0,v:p.man.vals['x:'+e.id]||''}))}
+function allDims(p){return[...p.faces.flatMap((f,i)=>dimsOfFace(f,i)),...dimsOfMan(p)]}
+const valsOf=(p,d)=>d.fi<0?p.man.vals:p.faces[d.fi].vals;
+
 // V : {k (px par pixel image), ox, oy} ; o : {sel, edit, exp, s (échelle des traits)}
 function drawPlan(c,p,V,o={}){
- const s=o.s||1,P=q=>[V.ox+q[0]/1000*p.w*V.k,V.oy+q[1]/1000*p.h*V.k],hits=[],placed=[];
+ const s=o.s||1,P=q=>[V.ox+q[0]/1000*p.w*V.k,V.oy+q[1]/1000*p.h*V.k],hits=[],placed=[],live=!o.exp;
  c.lineJoin='round';c.lineCap='round';
- p.faces.forEach((f,fi)=>{
-  // contour de la face (discret)
+ p.faces.forEach(f=>{
   c.beginPath();facePoly(f).forEach((q,i)=>{const[x,y]=P(q);i?c.lineTo(x,y):c.moveTo(x,y)});c.closePath();
   c.lineWidth=2*s;c.strokeStyle='#ffffffb0';c.setLineDash([7*s,5*s]);c.stroke();c.setLineDash([]);
-  if(o.edit){for(const[k,q]of[['bl',f.bl],['br',f.br],['tr',f.tr],['tl',f.tl],...(f.apex?[['apex',f.apex]]:[])])handle(c,P(q),s,'#ffeb3b',hits,{t:'v',f,k})
+  if(o.edit){for(const[k,q]of[['bl',f.bl],['br',f.br],['tr',f.tr],['tl',f.tl],...(f.apex?[['apex',f.apex]]:[])])handle(c,P(q),s,'#ffeb3b',hits,{t:'v',f,k});
    const[nx,ny]=P(cen(f));label(c,nx,ny,f.name,s*1.2,'#ffeb3b','center')}
-  // ouvertures
   for(const op of f.ops){const[a,b]=P([op.x1,op.y1]),[x2,y2]=P([op.x2,op.y2]);
    c.lineWidth=2*s;c.strokeStyle=C.op;c.strokeRect(a,b,x2-a,y2-b);
-   if(o.edit){handle(c,[a,b],s,C.op,hits,{t:'o1',f,it:op});handle(c,[x2,y2],s,C.op,hits,{t:'o2',f,it:op});label(c,a+3*s,b+10*s,op.label,s,'#bfe9ff')}
-   hits.push({t:'op',f,it:op,x:a,y:b,w:x2-a,h:y2-b,low:1})}
-  // extra : poignées
-  if(o.edit)for(const e of f.ex){handle(c,P(e.a),s,C.o,hits,{t:'ea',f,it:e});handle(c,P(e.b),s,C.o,hits,{t:'eb',f,it:e})}
+   if(o.edit){handle(c,[a,b],s,C.op,hits,{t:'o1',it:op,own:f,arr:'ops'});handle(c,[x2,y2],s,C.op,hits,{t:'o2',it:op,own:f,arr:'ops'});label(c,a+3*s,b+10*s,op.label,s,'#bfe9ff')}
+   hits.push({t:'op',it:op,own:f,arr:'ops',x:a,y:b,w:x2-a,h:y2-b})}
+  if(o.edit)for(const e of f.ex){handle(c,P(e.a),s,C.o,hits,{t:'ea',it:e,own:f,arr:'ex'});handle(c,P(e.b),s,C.o,hits,{t:'eb',it:e,own:f,arr:'ex'})}
  });
+ // lignes libres (arrêts d'isolant, limites demandées par le client…)
+ for(const l of p.man.lines){const a=P(l.a),b=P(l.b);
+  c.lineWidth=6*s;c.strokeStyle='#0009';c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
+  c.lineWidth=3.5*s;c.strokeStyle=C.line;c.setLineDash([12*s,7*s]);c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();c.setLineDash([]);
+  const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;c.font=`800 ${13*s}px system-ui`;const w=c.measureText(l.label).width+14*s,h=22*s;
+  c.fillStyle=C.line;c.beginPath();c.roundRect?c.roundRect(mx-w/2,my-h-6*s,w,h,6*s):c.rect(mx-w/2,my-h-6*s,w,h);c.fill();
+  c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(l.label,mx,my-h/2-6*s);
+  hits.push({t:'ln',it:l,own:p.man,arr:'lines',x:mx-w/2-6,y:my-h-12*s,w:w+12,h:h+12*s});
+  if(live){handle(c,a,s,C.line,hits,{t:'la',it:l,own:p.man,arr:'lines'});handle(c,b,s,C.line,hits,{t:'lb',it:l,own:p.man,arr:'lines'})}}
+ // cotes manuelles : poignées toujours disponibles
+ if(live)for(const e of p.man.ex){handle(c,P(e.a),s,C.o,hits,{t:'ea',it:e,own:p.man,arr:'ex'});handle(c,P(e.b),s,C.o,hits,{t:'eb',it:e,own:p.man,arr:'ex'})}
  // points singuliers numérotés
  let n=0;
- p.faces.forEach(f=>f.pts.forEach(q=>{n++;const[x,y]=P([q.x,q.y]),r=12*s;
+ for(const own of[...p.faces,p.man])for(const q of own.pts){n++;const[x,y]=P([q.x,q.y]),r=12*s;
   c.lineWidth=2.6*s;c.strokeStyle=C.pt;c.fillStyle='#fff';c.beginPath();c.arc(x,y,r,0,7);c.fill();c.stroke();
   c.fillStyle=C.pt;c.font=`900 ${12*s}px system-ui`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(n),x,y+.5);
   label(c,x+r+4*s,y,q.label,s,'#ffd2c7');
-  hits.push({t:'pt',f,it:q,x:x-r-4,y:y-r-4,w:2*r+8,h:2*r+8,pt:1})}));
+  hits.push({t:'pt',it:q,own,arr:'pts',x:x-r-4,y:y-r-4,w:2*r+8,h:2*r+8})}
  // flèches de cotes
  for(const d of allDims(p)){
   const A=P(d.a),B=P(d.b),dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy);if(L<4)continue;
   const ux=dx/L,uy=dy/L;let nx=-uy,ny=ux;
   if(d.ref){const R=P(d.ref),mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2;if((mx-R[0])*nx+(my-R[1])*ny<0){nx=-nx;ny=-ny}}
   const off=d.off*s,[ix0,iy0]=P([0,0]),[ix1,iy1]=P([1000,1000]),out=q=>q[0]<ix0+4*s||q[0]>ix1-4*s||q[1]<iy0+4*s||q[1]>iy1-4*s;
-  if(off&&(out([A[0]+nx*(off+14*s),A[1]+ny*(off+14*s)])||out([B[0]+nx*(off+14*s),B[1]+ny*(off+14*s)]))){nx=-nx;ny=-ny} // reste dans la photo
+  if(off&&(out([A[0]+nx*(off+14*s),A[1]+ny*(off+14*s)])||out([B[0]+nx*(off+14*s),B[1]+ny*(off+14*s)]))){nx=-nx;ny=-ny}
   const a=[A[0]+nx*off,A[1]+ny*off],b=[B[0]+nx*off,B[1]+ny*off];
   const ang=Math.abs(Math.atan2(dy,dx)*180/Math.PI)%180,on=o.sel==d.key,col=on?C.sel:ang<30||ang>150?C.h:(ang>60&&ang<120?C.v:C.o);
   c.strokeStyle=c.fillStyle=col;
   if(off){c.lineWidth=1.2*s;c.beginPath();c.moveTo(A[0]+nx*3*s,A[1]+ny*3*s);c.lineTo(a[0]+nx*5*s,a[1]+ny*5*s);c.moveTo(B[0]+nx*3*s,B[1]+ny*3*s);c.lineTo(b[0]+nx*5*s,b[1]+ny*5*s);c.stroke()}
-  // liseré sombre pour la lisibilité sur la photo
   c.lineWidth=(on?5.5:4)*s;c.strokeStyle='#0008';c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
   c.lineWidth=(on?3.2:2)*s;c.strokeStyle=col;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
   const z=Math.min(11*s,L/3);arrow(c,a[0],a[1],-ux,-uy,z);arrow(c,b[0],b[1],ux,uy,z);
   const txt=d.v||(o.exp?'':'?');if(!txt)continue;
-  // l'étiquette glisse le long de la flèche pour ne pas recouvrir une autre étiquette
   const ps=s*(d.off==13?.85:1);c.font=`800 ${15*ps}px system-ui`;const pw=Math.max(c.measureText(txt).width+12*ps,30*ps),ph=23*ps;
   let t=.5;for(const tt of[.5,.3,.7,.18,.82,.4,.6]){const mx=a[0]+(b[0]-a[0])*tt,my=a[1]+(b[1]-a[1])*tt;
    if(!placed.some(r=>Math.abs(r[0]-mx)<(r[2]+pw)/2+2&&Math.abs(r[1]-my)<(r[3]+ph)/2+2)){t=tt;break}}
@@ -369,18 +481,22 @@ function drawPlan(c,p,V,o={}){
   const bb=pill(c,px,py,txt,ps,d.v?'#fff':'#fff59d',col,on?3:1.2);
   hits.push({t:'dim',key:d.key,x:bb.x-6,y:bb.y-6,w:bb.w+12,h:bb.h+12})}
  return hits}
-function handle(c,[x,y],s,col,hits,ref){c.fillStyle='#fff';c.strokeStyle=col;c.lineWidth=3*s;c.beginPath();c.arc(x,y,8*s,0,7);c.fill();c.stroke();
- hits.push({...ref,x:x-16,y:y-16,w:32,h:32,handle:1})}
+C.line='#ff9800';
 
-/* ================= écran métré ================= */
+/* ================= écran photo ================= */
 const cv=$('#cv'),cx=cv.getContext('2d');
 let V=null,hits=[],sel=null,editing=false,dpr=1,img=null;
-async function openPlan(p){plan=p;editing=false;banner(null);$('#home').hidden=true;$('#planv').hidden=false;
- img=await createImageBitmap(p.blob);resize();const d=allDims(p).find(x=>!x.v)||allDims(p)[0];sel=d&&d.key;render()}
+async function openPhoto(p){plan=p;editing=false;stopDict();show('planv');V=null;img=null;
+ const b=await createImageBitmap(p.blob);if(plan!==p)return;img=b;resize();
+ const d=allDims(p).find(x=>!x.v)||allDims(p)[0];sel=d&&d.key;render()}
 function fit(){const r=cv.getBoundingClientRect(),k=Math.min(r.width/plan.w,r.height/plan.h);V={k,ox:(r.width-plan.w*k)/2,oy:(r.height-plan.h*k)/2}}
 function render(){
- if(!plan||!img)return;
- $('#pname').textContent=plan.name;$('#bEdit').classList.toggle('on',editing);$('#editBar').hidden=!editing;
+ if(!plan)return;const ps=photosOf(folder),i=ps.indexOf(plan);
+ $('#pname').textContent=plan.name;$('#pIdx').textContent=`${i+1}/${ps.length}`;$('#pPrev').disabled=i<=0;$('#pNext').disabled=i>=ps.length-1;
+ $('#bEdit').classList.toggle('on',editing);$('#editBar').hidden=!editing;
+ $('#noteBox').hidden=!plan.notes;$('#noteBox').textContent='📝 '+plan.notes;
+ updBanner();
+ if(!img)return;
  const r=cv.getBoundingClientRect();if(!V)fit();
  cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle='#15181d';cx.fillRect(0,0,r.width,r.height);
  cx.drawImage(img,V.ox,V.oy,plan.w*V.k,plan.h*V.k);
@@ -388,35 +504,57 @@ function render(){
  panel()}
 function resize(){dpr=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();cv.width=Math.max(1,Math.round(r.width*dpr));cv.height=Math.max(1,Math.round(r.height*dpr));V=null;render()}
 new ResizeObserver(()=>{if(plan)resize()}).observe($('#stage'));
-$('#back').onclick=()=>{if(abortC&&busy)abortC.abort();showHome()};
-$('#pname').onclick=()=>{const n=prompt('Nom du métré',plan.name);if(n&&n.trim()){plan.name=n.trim();save();render()}};
+$('#back').onclick=()=>{plan=null;stopDict();show('folder');renderFolder()};
+$('#pname').onclick=()=>{const n=prompt('Nom de la photo',plan.name);if(n&&n.trim()){plan.name=n.trim();save();render()}};
+$('#pPrev').onclick=()=>{const ps=photosOf(folder),i=ps.indexOf(plan);if(i>0)openPhoto(ps[i-1])};
+$('#pNext').onclick=()=>{const ps=photosOf(folder),i=ps.indexOf(plan);if(i<ps.length-1)openPhoto(ps[i+1])};
+
+/* ---- bandeau d'état de l'analyse ---- */
+let bnKey='';
+function updBanner(){const p=plan,b=$('#banner');if(!p)return;let key='',html='';
+ const model=settings.model||DEFAULT_MODEL,slow=isSlowModel(model)&&bestFlash(settings.models);
+ if(p.st=='run'||p.st=='wait'){key='run'+p.st+slow;html=`<div class="spin"></div><span class="grow">${p.st=='wait'?'En attente (d’autres photos sont en cours d’analyse)…':'Gemini pose les flèches… <b id="bnT"></b>'} <small style="color:#aaa">${esc(model)}</small></span>${slow?'<button data-b="fast" class="pri">⚡ Passer en Flash</button>':''}<button data-b="cancel">Annuler</button>`}
+ else if(p.st=='err'){key='err'+p.errTxt;const e=p.err||{};html=`<span class="grow"><b>L’analyse n’a pas abouti.</b></span><button data-b="retry" class="pri">Réessayer</button><button data-b="manual">Placer à la main</button><button data-b="set">⚙</button><button data-b="copy">Copier le détail</button><pre>${esc(e.message||'')}${e.detail&&e.detail!=e.message?'\n'+esc(e.detail):''}</pre>`}
+ else if(!p.faces.length&&p.st=='todo'){key='todo';html='<span class="grow">Photo pas encore analysée.</span><button data-b="retry" class="pri">✨ Analyser</button><button data-b="manual">Placer à la main</button>'}
+ if(!key){b.hidden=true;bnKey='';return}
+ if(key!=bnKey){b.innerHTML=html;bnKey=key}b.hidden=false;
+ const t=$('#bnT');if(t)t.textContent=Math.round((Date.now()-p.t0)/1000)+' s'}
+$('#banner').onclick=async e=>{const b=e.target.closest('[data-b]');if(!b)return;const p=plan,a=b.dataset.b;
+ if(a=='cancel'){if(p.ac)p.ac.abort();else{p.st=p.faces.length?'done':'todo';refresh()}}
+ if(a=='fast'){settings.model=bestFlash(settings.models);saveSettings();if(p.ac)p.ac.abort();setTimeout(()=>enqueue(p),60)}
+ if(a=='retry'){if(!settings.key)openSettings(()=>enqueue(p));else enqueue(p)}
+ if(a=='set')openSettings(()=>enqueue(p));
+ if(a=='copy'){try{await navigator.clipboard.writeText(p.errTxt||'');toast('Détail copié (il ne contient pas votre clé)')}catch(_){prompt('Copiez ce texte :',p.errTxt||'')}}
+ if(a=='manual'){if(!p.faces.length)p.faces=[defaultFace(1)];p.st='done';save(p);const d=allDims(p)[0];sel=d&&d.key;editMode(true)}};
 
 /* ---- saisie ---- */
-function curDim(){return allDims(plan).find(d=>d.key==sel)}
+function curDim(){return plan&&allDims(plan).find(d=>d.key==sel)}
 function panel(){
- const ds=allDims(plan),i=ds.findIndex(x=>x.key==sel),d=ds[i],f=d&&plan.faces[d.fi];
- const dis=busy||!ds.length;for(const b of document.querySelectorAll('#keys button'))b.disabled=dis;
- $('#dPos').textContent=d?`Cote ${i+1} / ${ds.length}`+(plan.faces.length>1?` · ${f.name}`:''):'';
- $('#dLab').textContent=busy?'Analyse en cours…':d?d.label:ds.length?'Touchez une étiquette sur la photo':'Aucune cote pour le moment';
+ const ds=allDims(plan),i=ds.findIndex(x=>x.key==sel),d=ds[i],f=d&&d.fi>=0&&plan.faces[d.fi];
+ for(const b of document.querySelectorAll('#keys button'))b.disabled=!ds.length;
+ $('#dPos').textContent=d?`Cote ${i+1} / ${ds.length}`+(f&&plan.faces.length>1?` · ${f.name}`:d.fi<0?' · ajoutée':''):'';
+ $('#dLab').textContent=d?d.label:plan.st=='run'?'Analyse en cours…':ds.length?'Touchez une étiquette sur la photo':'Aucune cote pour le moment';
  $('#dTxt').textContent=d&&d.v?d.v:'—';
  let html='';const left=ds.filter(x=>!x.v).length;
- if(ds.length)html+=left?`<div>${left} cote(s) à saisir</div>`:'<div><b>✓ Toutes les cotes sont saisies</b></div>';
- let tb=0,to=0,tn=0,any=false,ap=false;
- plan.faces.forEach(f=>{const s=surfaces(f);if(!s)return;any=true;ap=ap||s.approx;tb+=s.brut;to+=s.ouv;tn+=s.net;
+ if(ds.length)html+=left?`<div>${left} cote(s) à saisir sur cette photo</div>`:'<div><b>✓ Toutes les cotes de cette photo sont saisies</b></div>';
+ let tn=0,any=false,ap=false;
+ plan.faces.forEach(f=>{const s=surfaces(f);if(!s)return;any=true;ap=ap||s.approx;tn+=s.net;
   html+=`<div>${esc(f.name)} : brute ${s.approx?'≈ ':''}${m2(s.brut)} · nette <b>${s.approx?'≈ ':''}${m2(s.net)}</b></div>`});
  if(any&&plan.faces.length>1)html+=`<div>Total net : <b>${ap?'≈ ':''}${m2(tn)}</b></div>`;
  if(!any&&ds.length)html+='<div style="color:var(--mu)">Surfaces calculées dès que longueur et hauteur sont saisies (cm, ou m avec une virgule).</div>';
  $('#sum').innerHTML=html;$('#sum').hidden=!html}
-function setVal(v){const d=curDim();if(!d)return;const f=plan.faces[d.fi];if(v)f.vals[d.k]=v;else delete f.vals[d.k];save();render()}
+function setVal(v){const d=curDim();if(!d)return;const vs=valsOf(plan,d);if(v)vs[d.k]=v;else delete vs[d.k];save();render()}
 function step(k){const ds=allDims(plan);if(!ds.length)return;let i=ds.findIndex(d=>d.key==sel)+k;
- if(i>=ds.length){stopDict();toast(ds.every(d=>d.v)?'✓ Toutes les cotes sont saisies. Touchez ⇪ Partager.':'Fin de la liste');return}
+ if(i>=ds.length){stopDict();const ps=photosOf(folder),j=ps.indexOf(plan),nx=ps.slice(j+1).find(q=>allDims(q).some(d=>!d.v));
+  if(ds.every(d=>d.v)&&nx){toast('Photo suivante : '+nx.name);openPhoto(nx);return}
+  toast(ds.every(d=>d.v)?'✓ Toutes les cotes de cette photo sont saisies.':'Fin de la liste');return}
  if(i<0)return;sel=ds[i].key;render();if(dict)listen()}
 $('#keys').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const k=b.dataset.k,d=curDim();
  if(k=='next')return step(1);if(k=='prev')return step(-1);if(k=='mic')return toggleDict();
  if(!d)return;let v=d.v||'';
  if(k=='del')v=v.slice(0,-1);else{const ch=b.textContent;if(ch==','&&(v.includes(',')||!v))return;if(v.length>=7)return;v+=ch}
  setVal(v)};
-document.addEventListener('keydown',e=>{if(!plan||$('#planv').hidden||busy||document.querySelector('dialog[open]'))return;const d=curDim();
+document.addEventListener('keydown',e=>{if(!plan||$('#planv').hidden||document.querySelector('dialog[open]'))return;const d=curDim();
  if(/^[0-9]$/.test(e.key)&&d){setVal((d.v||'')+e.key);e.preventDefault()}
  else if((e.key==','||e.key=='.')&&d&&d.v&&!d.v.includes(',')){setVal(d.v+',');e.preventDefault()}
  else if(e.key=='Backspace'&&d){setVal((d.v||'').slice(0,-1));e.preventDefault()}
@@ -450,82 +588,165 @@ function listen(){
 function toggleDict(){if(dict)return stopDict();dict=true;$('#mic').classList.add('rec');toast('Dites la cote, puis « suivant », « retour » ou « stop »');listen()}
 function stopDict(){dict=false;$('#mic').classList.remove('rec');try{rec&&rec.abort()}catch(_){}rec=null}
 
-/* ---- toucher : sélection, zoom, déplacement ---- */
+
+/* ---- toucher : sélection, zoom, glisser ---- */
 const ptr=new Map();let pinch=null,down=null,drag=null;
 function hitAt(x,y){const hs=hits.filter(h=>x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h);
- if(editing){const hd=hs.filter(h=>h.handle);if(hd.length)return hd[hd.length-1];const pt=hs.find(h=>h.pt);if(pt)return pt}
- return hs.find(h=>h.t=='dim')||(editing&&hs.find(h=>h.t=='op'))||null}
-const toN=(dx,dy)=>[dx/V.k/plan.w*1000,dy/V.k/plan.h*1000];
-cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);
+ const hd=hs.filter(h=>h.handle);if(hd.length)return hd[hd.length-1];
+ return hs.find(h=>h.t=='pt')||hs.find(h=>h.t=='dim')||hs.find(h=>h.t=='ln')||(editing&&hs.find(h=>h.t=='op'))||null}
+const normAt=e=>{const r=cv.getBoundingClientRect();return[cl((e.clientX-r.left-V.ox)/V.k/plan.w*1000),cl((e.clientY-r.top-V.oy)/V.k/plan.h*1000)]};
+cv.addEventListener('pointerdown',e=>{if(!plan||!V)return;cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);
  if(ptr.size==2){const[a,b]=[...ptr.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),m:[(a[0]+b[0])/2,(a[1]+b[1])/2],V:{...V}};drag=null;down=null;return}
  const r=cv.getBoundingClientRect(),h=hitAt(e.clientX-r.left,e.clientY-r.top);
  down={x:e.clientX,y:e.clientY,moved:false,h};
- if(editing&&h&&(h.handle||h.pt)){const snap=JSON.stringify(h.f);drag={h,snap}}else drag={pan:{...V}}});
+ drag=h&&(h.handle||h.t=='pt'||h.t=='ln')?{h,q0:normAt(e),o:JSON.parse(JSON.stringify(h.it||{}))}:{pan:{...V}}});
 cv.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,[e.clientX,e.clientY]);
  if(pinch&&ptr.size>=2){const[a,b]=[...ptr.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),r=cv.getBoundingClientRect(),m=[(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top],pm=[pinch.m[0]-r.left,pinch.m[1]-r.top];
   const k=Math.min(pinch.V.k*15,Math.max(pinch.V.k/3,pinch.V.k*d/pinch.d)),ix=(pm[0]-pinch.V.ox)/pinch.V.k,iy=(pm[1]-pinch.V.oy)/pinch.V.k;
   V={k,ox:m[0]-ix*k,oy:m[1]-iy*k};render();return}
  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>7)down.moved=true;if(!down.moved||!drag)return;
  if(drag.pan){V={k:drag.pan.k,ox:drag.pan.ox+dx,oy:drag.pan.oy+dy};render();return}
- const r=cv.getBoundingClientRect(),q=[cl((e.clientX-r.left-V.ox)/V.k/plan.w*1000),cl((e.clientY-r.top-V.oy)/V.k/plan.h*1000)],h=drag.h;
+ const q=normAt(e),h=drag.h,it=h.it,o=drag.o,mv=pt=>[cl(pt[0]+q[0]-drag.q0[0]),cl(pt[1]+q[1]-drag.q0[1])];
  if(h.t=='v')h.f[h.k]=q;
- else if(h.t=='o1'){h.it.x1=Math.min(q[0],h.it.x2-2);h.it.y1=Math.min(q[1],h.it.y2-2)}
- else if(h.t=='o2'){h.it.x2=Math.max(q[0],h.it.x1+2);h.it.y2=Math.max(q[1],h.it.y1+2)}
- else if(h.t=='ea')h.it.a=q;else if(h.t=='eb')h.it.b=q;
- else if(h.t=='pt'){h.it.x=q[0];h.it.y=q[1]}
+ else if(h.t=='o1'){it.x1=Math.min(q[0],it.x2-2);it.y1=Math.min(q[1],it.y2-2)}
+ else if(h.t=='o2'){it.x2=Math.max(q[0],it.x1+2);it.y2=Math.max(q[1],it.y1+2)}
+ else if(h.t=='ea'||h.t=='la')it.a=q;else if(h.t=='eb'||h.t=='lb')it.b=q;
+ else if(h.t=='pt'){it.x=q[0];it.y=q[1]}
+ else if(h.t=='ln'){it.a=mv(o.a);it.b=mv(o.b)}
  render()});
+function renameOrDelete(h){const it=h.it,own=h.own,arr=h.arr;
+ const n=prompt('Nom (laisser vide pour SUPPRIMER)',it.label);if(n==null)return;
+ if(!n.trim()){own[arr].splice(own[arr].indexOf(it),1);if(own.vals)for(const k of['w:','h:','x:'])delete own.vals[k+it.id]}else it.label=n.trim();
+ save();render()}
 function up(e){if(!ptr.has(e.pointerId))return;ptr.delete(e.pointerId);if(pinch){if(ptr.size<2)pinch=null;return}
  const d=down;down=null;const dr=drag;drag=null;if(!d)return;
  if(d.moved){if(dr&&dr.h)save();return}
  const h=d.h;if(!h)return;
  if(h.t=='dim'){sel=h.key;render();return}
- if(editing&&(h.t=='op'||h.t=='pt'||h.t=='o1'||h.t=='o2')){const f=h.f,it=h.it,isOp=h.t!='pt',list=isOp?f.ops:f.pts;
-  const n=prompt('Nom (laisser vide pour SUPPRIMER)',it.label);if(n==null)return;
-  if(!n.trim()){list.splice(list.indexOf(it),1);if(isOp){delete f.vals['w:'+it.id];delete f.vals['h:'+it.id]}}else it.label=n.trim();save();render()}}
+ if(h.t=='v'){const n=prompt('Nom de la face',h.f.name);if(n&&n.trim()){h.f.name=n.trim();save();render()}return}
+ if(h.own&&(editing||h.own===plan.man||h.t=='pt'))renameOrDelete(h)}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
-cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,k=V.k*Math.exp(-e.deltaY*.0015);
+cv.addEventListener('wheel',e=>{e.preventDefault();if(!V)return;const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,k=V.k*Math.exp(-e.deltaY*.0015);
  const ix=(mx-V.ox)/V.k,iy=(my-V.oy)/V.k;V={k,ox:mx-ix*k,oy:my-iy*k};render()},{passive:false});
 cv.addEventListener('dblclick',()=>{V=null;render()});
 
-/* ---- mode modifier ---- */
+/* ---- ajouts et corrections ---- */
 function editMode(on){editing=on;stopDict();render()}
-const curFace=()=>{const d=curDim();return plan.faces[d?d.fi:0]};
+const curFace=()=>{const d=curDim();return d&&d.fi>=0?plan.faces[d.fi]:plan.faces[0]};
+// centre de la zone visible, en coordonnées 0-1000
+function viewCenter(){const r=cv.getBoundingClientRect();return[cl((r.width/2-V.ox)/V.k/plan.w*1000),cl((r.height/2-V.oy)/V.k/plan.h*1000)]}
 $('#bEdit').onclick=()=>editMode(!editing);$('#bEditOk').onclick=()=>editMode(false);
-$('#editBar').onclick=e=>{const b=e.target.closest('[data-add]');if(!b)return;const t=b.dataset.add;
- if(!plan.faces.length)plan.faces.push(defaultFace(1));const f=curFace(),[cx0,cy0]=cen(f);
- if(t=='point'){const n=prompt('Point singulier (ex. VMC, Descente EP, Coffret EDF…)');if(!n)return;f.pts.push({id:uid(),label:n.trim(),x:cx0,y:cy0})}
- else if(t=='cote'){const n=prompt('Nom de la cote (ex. Soubassement, Débord de toit…)');if(!n)return;const e2={id:uid(),label:n.trim(),a:[cx0-60,cy0],b:[cx0+60,cy0]};f.ex.push(e2);sel=f&&(plan.faces.indexOf(f)+'|x:'+e2.id)}
- else{const nb=f.ops.filter(o=>o.kind==t).length+1,isD=t=='porte';
-  const o={id:uid(),label:(isD?'Porte ':'Fenêtre ')+nb,kind:t,x1:cx0-35,y1:cy0-(isD?90:45),x2:cx0+35,y2:cy0+(isD?90:45)};f.ops.push(o);sel=plan.faces.indexOf(f)+'|w:'+o.id}
- save();render();toast('Glissez les poignées pour le placer')};
+function addItem(t){
+ if(!plan||!V)return;const[cx0,cy0]=viewCenter(),m=plan.man;
+ if(t=='ligne'){const n=prompt('Nom de la ligne','Arrêt isolant');if(n==null)return;const l={id:uid(),label:n.trim()||'Ligne',a:[cl(cx0-180),cy0],b:[cl(cx0+180),cy0]};m.lines.push(l);toast('Glissez la ligne ou ses extrémités à leur place')}
+ else if(t=='point'){const n=prompt('Point singulier (ex. VMC, Descente EP, Coffret EDF…)');if(!n||!n.trim())return;m.pts.push({id:uid(),label:n.trim(),x:cx0,y:cy0});toast('Glissez le point à sa place')}
+ else if(t=='cote'){const n=prompt('Nom de la cote (ex. Hauteur arrêt isolant, Soubassement…)');if(!n||!n.trim())return;const e={id:uid(),label:n.trim(),a:[cx0,cl(cy0+80)],b:[cx0,cl(cy0-80)]};m.ex.push(e);sel='m|x:'+e.id;toast('Glissez les deux extrémités, puis tapez la cote')}
+ else{if(!plan.faces.length)plan.faces.push(defaultFace(1));const f=curFace(),nb=f.ops.filter(o=>o.kind==t).length+1,isD=t=='porte';
+  const o={id:uid(),label:(isD?'Porte ':'Fenêtre ')+nb,kind:t,x1:cl(cx0-35),y1:cl(cy0-(isD?90:45)),x2:cl(cx0+35),y2:cl(cy0+(isD?90:45))};f.ops.push(o);sel=plan.faces.indexOf(f)+'|w:'+o.id;toast('Glissez les poignées pour la caler')}
+ save();render()}
+$('#tools').onclick=e=>{const b=e.target.closest('[data-add]');if(b)addItem(b.dataset.add)};
+$('#editBar').onclick=e=>{const b=e.target.closest('[data-add]');if(b)addItem(b.dataset.add)};
 $('#bShape').onclick=()=>{const f=curFace();if(!f)return;const order=['rectangle','pignon','appentis'];f.shape=order[(order.indexOf(f.shape)+1)%3];
  if(f.shape=='pignon'&&!f.apex)f.apex=[(f.tl[0]+f.tr[0])/2,cl(Math.min(f.tl[1],f.tr[1])-(f.bl[1]-f.tl[1])*.6)];if(f.shape!='pignon')f.apex=null;if(f.shape=='rectangle')delete f.vals.R;
  save();render();toast(f.name+' : '+f.shape)};
 $('#bAddFace').onclick=()=>{const n=plan.faces.length+1,f=defaultFace(n);const nm=prompt('Nom de la face','Face '+n);if(nm)f.name=nm.trim();plan.faces.push(f);sel=(plan.faces.length-1)+'|W';save();render()};
 $('#bDelFace').onclick=()=>{const f=curFace();if(!f)return;if(!confirm('Supprimer « '+f.name+' » et ses cotes ?'))return;plan.faces.splice(plan.faces.indexOf(f),1);const d=allDims(plan)[0];sel=d&&d.key;save();render()};
-$('#bRedo').onclick=()=>{if(plan.faces.length&&!confirm('Refaire l’analyse ? Les cotes saisies seront perdues.'))return;editMode(false);analyse(plan)};
+$('#bRedo').onclick=()=>{if(plan.faces.length&&!confirm('Refaire l’analyse ? Les flèches détectées seront remplacées (vos lignes, points, cotes ajoutés et notes sont conservés).'))return;editMode(false);enqueue(plan)};
 
-/* ================= partage ================= */
-async function exportImage(p){
- const W=p.w,s=Math.max(1,W/900),lines=[],legend=[];let n=0;
- p.faces.forEach(f=>{const sf=surfaces(f);if(sf)lines.push(`${f.name} : brute ${sf.approx?'≈ ':''}${m2(sf.brut)} · ouvertures ${m2(sf.ouv)} · nette ${sf.approx?'≈ ':''}${m2(sf.net)}`);f.pts.forEach(q=>legend.push(`${++n}. ${q.label}`))});
- const band=Math.round((24+(lines.length+Math.ceil(legend.length/4))*22)*s)+(lines.length||legend.length?0:-Math.round(24*s));
- const c=document.createElement('canvas');c.width=W;c.height=p.h+Math.max(0,band);const g=c.getContext('2d');
- g.drawImage(img&&plan===p?img:await createImageBitmap(p.blob),0,0,p.w,p.h);
- drawPlan(g,p,{k:1,ox:0,oy:0},{exp:true,s});
- g.font=`800 ${18*s}px system-ui`;const tw=g.measureText(p.name).width;g.fillStyle='#000b';g.fillRect(8*s,8*s,tw+20*s,30*s);g.fillStyle='#fff';g.textAlign='left';g.textBaseline='middle';g.fillText(p.name,18*s,23*s);
- if(band>0){g.fillStyle='#fff';g.fillRect(0,p.h,W,band);g.fillStyle='#1f2430';g.font=`600 ${14*s}px system-ui`;let y=p.h+20*s;
-  for(const l of lines){g.fillText(l,14*s,y);y+=22*s}
-  for(let i=0;i<legend.length;i+=4){g.fillText(legend.slice(i,i+4).join('    '),14*s,y);y+=22*s}}
- return new Promise(r=>c.toBlob(b=>r(new File([b],p.name.replace(/[^\wÀ-ÿ\- ]+/g,'_')+'.jpg',{type:'image/jpeg'})),'image/jpeg',.9))}
-function recap(p){let n=0;return[`== ${p.name} ==`,...p.faces.flatMap((f,fi)=>{const s=surfaces(f);return[...(p.faces.length>1?['— '+f.name]:[]),...dimsOfFace(f,fi).map(d=>`${d.label} : ${d.v||'—'}`),
- ...(f.pts.length?['Points singuliers :',...f.pts.map(q=>`  ${++n}. ${q.label}`)]:[]),
- ...(s?[`Surface brute ${s.approx?'≈ ':''}${m2(s.brut)} – ouvertures ${m2(s.ouv)} – nette ${s.approx?'≈ ':''}${m2(s.net)}`]:[])]})].join('\n')}
-$('#bShare').onclick=async()=>{
- stopDict();const file=await exportImage(plan),text=recap(plan);
- if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:plan.name,text});return}catch(e){if(e.name=='AbortError')return}}
- const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();
- await sleep(300);const b=document.createElement('a');b.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));b.download=plan.name+'.txt';b.click()};
+/* ---- notes ---- */
+$('#bNotes').onclick=$('#noteBox').onclick=()=>{$('#nText').value=plan.notes||'';$('#dNotes').showModal();setTimeout(()=>$('#nText').focus(),50)};
+$('#nCancel').onclick=()=>{noteStop();$('#dNotes').close()};
+$('#nOk').onclick=()=>{noteStop();plan.notes=$('#nText').value.trim();save();$('#dNotes').close();render()};
+let nrec=null;function noteStop(){try{nrec&&nrec.stop()}catch(_){}nrec=null;$('#nMic').classList.remove('on')}
+$('#nMic').onclick=()=>{if(nrec)return noteStop();if(!SR){toast('Dictée indisponible dans ce navigateur');return}
+ nrec=new SR();nrec.lang='fr-FR';nrec.continuous=true;nrec.interimResults=false;$('#nMic').classList.add('on');
+ nrec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){const t=e.results[i][0].transcript.trim(),ta=$('#nText');ta.value+=(ta.value&&!/\s$/.test(ta.value)?' ':'')+t}};
+ nrec.onend=()=>{$('#nMic').classList.remove('on');nrec=null};try{nrec.start()}catch(_){}};
+
+/* ================= image cotée ================= */
+async function annotated(p,maxW=1600){
+ const bm=plan===p&&img?img:await createImageBitmap(p.blob),k=Math.min(1,maxW/p.w),c=document.createElement('canvas');
+ c.width=Math.round(p.w*k);c.height=Math.round(p.h*k);const g=c.getContext('2d');g.drawImage(bm,0,0,c.width,c.height);
+ drawPlan(g,p,{k,ox:0,oy:0},{exp:true,s:Math.max(1,c.width/900)});
+ const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.85));return{blob,w:c.width,h:c.height}}
+
+/* ================= récapitulatif ================= */
+function photoLines(p){const out=[];let n=0;
+ p.faces.forEach((f,fi)=>{out.push({b:1,t:f.name});
+  for(const d of dimsOfFace(f,fi))out.push({t:`  ${d.label} : ${d.v||'—'}`});
+  const s=surfaces(f);if(s)out.push({t:`  Surface brute ${s.approx?'≈ ':''}${m2(s.brut)} – ouvertures ${m2(s.ouv)} – nette ${s.approx?'≈ ':''}${m2(s.net)}`,b:1})});
+ const md=dimsOfMan(p);if(md.length){out.push({b:1,t:'Cotes ajoutées'});for(const d of md)out.push({t:`  ${d.label} : ${d.v||'—'}`})}
+ const pts=[...p.faces.flatMap(f=>f.pts),...p.man.pts];if(pts.length){out.push({b:1,t:'Points singuliers'});pts.forEach(q=>out.push({t:`  ${++n}. ${q.label}`}))}
+ if(p.man.lines.length){out.push({b:1,t:'Lignes / arrêts'});p.man.lines.forEach(l=>out.push({t:'  – '+l.label}))}
+ if(p.notes){out.push({b:1,t:'Notes'});p.notes.split('\n').forEach(l=>out.push({t:'  '+l}))}
+ return out}
+function folderText(f){return photosOf(f).map(p=>[`== ${p.name} ==`,...photoLines(p).map(l=>l.t)].join('\n')).join('\n\n')}
+function totals(f){let net=0,ap=false,any=false;for(const p of photosOf(f))for(const fc of p.faces){const s=surfaces(fc);if(s){any=true;net+=s.net;ap=ap||s.approx}}return any?{net,ap}:null}
+
+/* ================= PDF (sans bibliothèque) ================= */
+const WIN={'€':128,'‚':130,'„':132,'…':133,'‘':145,'’':146,'“':147,'”':148,'•':149,'–':150,'—':151,'Œ':140,'œ':156,'Ÿ':159};
+function pdfStr(s){let o='';for(const ch of String(s)){let c=ch.codePointAt(0);if(ch=='≈'){o+='~';continue}if(WIN[ch])c=WIN[ch];else if(c>255||c<32)continue;
+ const x=String.fromCharCode(c);o+=(x=='('||x==')'||x=='\\')?'\\'+x:x}return o}
+const bin=s=>{const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u};
+function wrap(t,size,width){const max=Math.max(8,Math.floor(width/(size*.5))),out=[];let cur='';const ind=(t.match(/^\s*/)||[''])[0];
+ for(const w of t.trim().split(/\s+/)){if((cur+' '+w).length>max&&cur){out.push(cur);cur=ind+'  '+w}else cur=cur?cur+' '+w:ind+w}out.push(cur);return out}
+const T=(x,y,size,str,bold)=>`BT /F${bold?2:1} ${size} Tf ${x.toFixed(1)} ${y.toFixed(1)} Td (${pdfStr(str)}) Tj ET\n`;
+async function buildPDF(f){
+ const pages=[],A4=[595,842],m=32,date=new Date().toLocaleDateString('fr-FR'),ps=photosOf(f);
+ // page de synthèse
+ {let y=A4[1]-m-20,ops='0.12 0.14 0.19 rg\n';ops+=T(m,y,22,'Métré – '+f.name,1);y-=22;ops+=T(m,y,11,date+' · '+ps.length+' photo(s)');y-=30;
+  for(const [i,p] of ps.entries()){const ds=allDims(p),n=ds.filter(d=>d.v).length;ops+=T(m,y,12,`${i+1}. ${p.name} : ${n}/${ds.length} cotes`,1);y-=16;
+   for(const fc of p.faces){const s=surfaces(fc);ops+=T(m+14,y,10,fc.name+(s?` : brute ${s.approx?'≈ ':''}${m2(s.brut)} · ouvertures ${m2(s.ouv)} · nette ${s.approx?'≈ ':''}${m2(s.net)}`:' : surfaces non calculées'));y-=13;if(y<m+40)break}
+   if(p.notes){ops+=T(m+14,y,10,'Notes : '+p.notes.replace(/\n/g,' ').slice(0,110));y-=13}
+   y-=6;if(y<m+40)break}
+  const tt=totals(f);if(tt){y-=8;ops+=T(m,y,14,`Total surface nette : ${tt.ap?'≈ ':''}${m2(tt.net)}`,1)}
+  pages.push({w:A4[0],h:A4[1],ops})}
+ // une page par photo
+ for(const p of ps){
+  const im=await annotated(p,1600),land=im.w>=im.h,W=land?842:595,H=land?595:842,size=8.5,lead=10.5;
+  let ops='0.12 0.14 0.19 rg\n'+T(m,H-m-12,14,f.name+' – '+p.name,1);
+  const colW=land?236:(W-2*m-16)/2;
+  let lines=photoLines(p).flatMap(l=>wrap(l.t,size,colW).map(t=>({t,b:l.b})));
+  let ix,iy,iw,ih,cols;
+  if(land){iw=W-2*m-colW-14;ih=H-2*m-26;const k=Math.min(iw/im.w,ih/im.h);iw=im.w*k;ih=im.h*k;ix=m;iy=H-m-26-ih;cols=[{x:W-m-colW,top:H-m-30,bot:m}]}
+  else{const maxH=H*.56;iw=W-2*m;ih=H-2*m-26;const k=Math.min(iw/im.w,maxH/im.h);iw=im.w*k;ih=im.h*k;ix=(W-iw)/2;iy=H-m-26-ih;const top=iy-14;cols=[{x:m,top,bot:m},{x:m+colW+16,top,bot:m}]}
+  const fill=cs=>{for(const c of cs){let y=c.top;while(lines.length&&y>c.bot){const l=lines.shift();ops+=T(c.x,y,size,l.t,l.b);y-=lead}}};
+  fill(cols);
+  pages.push({w:W,h:H,ops,img:{bytes:new Uint8Array(await im.blob.arrayBuffer()),iw:im.w,ih:im.h,x:ix,y:iy,dw:iw,dh:ih}});
+  while(lines.length){ops='0.12 0.14 0.19 rg\n'+T(m,A4[1]-m-12,12,p.name+' (suite)',1);fill([{x:m,top:A4[1]-m-34,bot:m},{x:m+(A4[0]-2*m)/2+8,top:A4[1]-m-34,bot:m}]);pages.push({w:A4[0],h:A4[1],ops})}
+ }
+ // assemblage
+ const parts=[],offs=[];let len=0;const add=x=>{const u=typeof x=='string'?bin(x):x;parts.push(u);len+=u.length};
+ const obj=(n,body)=>{offs[n]=len;add(n+' 0 obj\n');typeof body=='function'?body():add(body);add('\nendobj\n')};
+ add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');let n=5;const meta=pages.map(pg=>({pg,io:pg.img?n++:0,co:n++,po:n++}));
+ obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+ obj(2,`<< /Type /Pages /Kids [${meta.map(x=>x.po+' 0 R').join(' ')}] /Count ${meta.length} >>`);
+ obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+ obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+ for(const{pg,io,co,po}of meta){
+  if(io)obj(io,()=>{add(`<< /Type /XObject /Subtype /Image /Width ${pg.img.iw} /Height ${pg.img.ih} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${pg.img.bytes.length} >>\nstream\n`);add(pg.img.bytes);add('\nendstream')});
+  const cs=(io?`q ${pg.img.dw.toFixed(2)} 0 0 ${pg.img.dh.toFixed(2)} ${pg.img.x.toFixed(2)} ${pg.img.y.toFixed(2)} cm /Im0 Do Q\n`:'')+pg.ops;
+  obj(co,()=>{add(`<< /Length ${cs.length} >>\nstream\n`);add(cs);add('\nendstream')});
+  obj(po,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pg.w} ${pg.h}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${io?` /XObject << /Im0 ${io} 0 R >>`:''} >> /Contents ${co} 0 R >>`)}
+ const xref=len;add(`xref\n0 ${n}\n0000000000 65535 f \n`);for(let i=1;i<n;i++)add(String(offs[i]).padStart(10,'0')+' 00000 n \n');
+ add(`trailer\n<< /Size ${n} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+ return new File(parts,('Métré '+f.name).replace(/[^\wÀ-ÿ\- ]+/g,'_')+'.pdf',{type:'application/pdf'})}
+
+/* ================= envoi ================= */
+async function sendFolder(f=folder){
+ if(!f)return;stopDict();const ps=photosOf(f);if(!ps.length){toast('Aucune photo dans ce dossier');return}
+ const run=ps.filter(p=>p.st=='run'||p.st=='wait').length,pr=progress(ps);
+ if(run&&!confirm(run+' photo(s) encore en analyse. Envoyer quand même ?'))return;
+ if(pr.n<pr.t&&!confirm(`${pr.t-pr.n} cote(s) non saisie(s). Envoyer quand même ?`))return;
+ toast('Préparation du PDF…',8000);
+ const pdf=await buildPDF(f),tt=totals(f),subject='Métré – '+f.name,
+  body=`Métré ${f.name} du ${new Date().toLocaleDateString('fr-FR')} (${ps.length} photo(s))`+(tt?`\nTotal surface nette : ${tt.ap?'≈ ':''}${m2(tt.net)}`:'')+'\n\n'+folderText(f);
+ $('#toast').hidden=true;
+ if(navigator.canShare&&navigator.canShare({files:[pdf]})){try{await navigator.share({files:[pdf],title:subject,text:body});return}catch(e){if(e.name=='AbortError')return}}
+ const a=document.createElement('a');a.href=URL.createObjectURL(pdf);a.download=pdf.name;a.click();
+ await sleep(400);
+ if(confirm('PDF téléchargé. Ouvrir votre messagerie pour l’envoyer ? (pensez à joindre le PDF)'))location.href=`mailto:${encodeURIComponent(settings.mail||'')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.slice(0,1800))}`}
+$('#fSend').onclick=()=>sendFolder();
 
 /* ================= réglages : clé et modèle ================= */
 let afterSettings=null;
@@ -535,16 +756,17 @@ async function listModels(key){
  const bad=/(tts|image|embed|live|audio|aqa|vision|computer|robot|native|learnlm|gemma|nano|veo|imagen)/i;
  const ms=(d.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')&&/^models\/gemini/.test(m.name)&&!bad.test(m.name)).map(m=>({id:m.name.replace(/^models\//,''),label:m.displayName||m.name}));
  const ver=id=>{const m=id.match(/gemini-(\d+(?:\.\d+)?)/);return m?+m[1]:0};
- const score=m=>ver(m.id)*100+(/flash/.test(m.id)?20:0)+(/pro/.test(m.id)?10:0)-(/lite/.test(m.id)?15:0)-(/preview|exp/.test(m.id)?5:0)-(/latest/.test(m.id)?1:0);
+ const score=m=>(/flash/.test(m.id)&&!/lite/.test(m.id)?10000:/flash/.test(m.id)?5000:0)+ver(m.id)*100-(/preview|exp/.test(m.id)?5:0)-(/latest/.test(m.id)?1:0);
  return ms.sort((a,b)=>score(b)-score(a))}
+function bestFlash(ms){const m=(ms||[]).find(x=>/flash/.test(x.id)&&!/lite/.test(x.id))||(ms||[]).find(x=>/flash/.test(x.id));return m&&m.id}
 function fillModels(ms,cur){$('#kModels').innerHTML=ms.map(m=>`<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('');
  $('#kModel').value=cur||(ms[0]&&ms[0].id)||DEFAULT_MODEL}
-function openSettings(after){afterSettings=after||null;$('#kKey').value=settings.key||'';$('#kMsg').textContent='';fillModels(settings.models||[],settings.model);$('#dSet').showModal()}
+function openSettings(after){afterSettings=after||null;$('#kKey').value=settings.key||'';$('#kMail').value=settings.mail||'';$('#kMsg').textContent='';fillModels(settings.models||[],settings.model);$('#dSet').showModal()}
 async function testKey(){const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');$('#kKey').value=key;
  if(!key){$('#kMsg').textContent='Collez votre clé.';return false}
  $('#kMsg').textContent='Vérification…';let e1='',e2='';
  try{const ms=await listModels(key);settings.models=ms;settings.provider='studio';
-  const cur=$('#kModel').value.trim();fillModels(ms,cur&&ms.some(m=>m.id==cur)?cur:null);
+  const cur=$('#kModel').value.trim();fillModels(ms,cur&&ms.some(m=>m.id==cur)&&!isSlowModel(cur)?cur:null);
   $('#kMsg').textContent='✓ Clé Google AI Studio valide ('+ms.length+' modèles).';return true}
  catch(e){e1=e.message}
  try{const model=$('#kModel').value.trim()||DEFAULT_MODEL;
@@ -556,14 +778,18 @@ $('#kTest').onclick=testKey;
 $('#kCancel').onclick=()=>{$('#dSet').close();afterSettings=null};
 $('#kOk').onclick=async()=>{const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');
  if(key!==settings.key||!settings.provider){const ok=await testKey();if(!ok){if(!confirm('La vérification a échoué. Enregistrer quand même ?'))return;delete settings.provider}}
- settings.key=key;settings.model=$('#kModel').value.trim()||DEFAULT_MODEL;saveSettings();$('#dSet').close();if(!plan)showHome();
+ settings.key=key;settings.model=$('#kModel').value.trim()||DEFAULT_MODEL;settings.mail=$('#kMail').value.trim();saveSettings();$('#dSet').close();refresh();
  if(afterSettings){const f=afterSettings;afterSettings=null;f()}};
+
 
 /* ================= démarrage ================= */
 (async()=>{
- const all=await dbDo(st=>st.getAll())||[];
- for(const p of all){p.url=URL.createObjectURL(p.blob);plans.push(p)}
- showHome();
+ const fs=await tx('folders',st=>st.getAll())||[],ps=await tx('photos',st=>st.getAll())||[];
+ folders=fs;photos=ps.map(initPhoto);
+ await migrateOld();
+ show('home');renderHome();
+ if(settings.key&&isSlowModel(settings.model)&&!settings.v6){const fm=bestFlash(settings.models);if(fm){settings.model=fm;toast('Modèle passé en '+fm+' (plus rapide)',4000)}}
+ settings.v6=1;saveSettings();
  if(!settings.key)setTimeout(()=>openSettings(),300);
 })();
 </script>
