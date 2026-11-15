@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f353f">
+<title>Métré photo</title>
+<style>
+:root{--bg:#2f353f;--pn:#3a414d;--pn2:#4a5260;--ac:#c3d600;--tx:#f2f4f7;--mu:#9aa3b2;--rd:#ff5a36}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:15px system-ui,sans-serif;overscroll-behavior:none}
+button,.b,select,input{font:inherit;color:var(--tx)}
+button,.b{background:var(--pn2);border:0;border-radius:8px;padding:9px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+button.on{background:var(--ac);color:#1d2127;font-weight:700}
+.b,.pri{background:var(--ac);color:#1d2127;font-weight:700}
+button:disabled{opacity:.45}
+header{display:flex;gap:6px;padding:6px 8px;background:var(--pn);align-items:center}
+#tabs{display:flex;gap:6px;flex:1;overflow-x:auto;scrollbar-width:none}
+#tabs button{padding:4px;gap:0;position:relative}
+#tabs button img{height:40px;width:56px;object-fit:cover;border-radius:5px;display:block}
+#tabs button.on{outline:3px solid var(--ac);background:var(--pn2)}
+#tabs button i{position:absolute;right:2px;bottom:2px;background:#000a;color:#fff;font-style:normal;font-size:11px;padding:0 4px;border-radius:4px}
+main{flex:1;min-height:0;position:relative;background:#1c2026}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;padding:24px}
+#empty .b{font-size:18px;padding:16px 22px}
+#empty p{color:var(--mu);max-width:44ch;margin:0;line-height:1.45}
+#hint{position:absolute;left:8px;right:8px;top:8px;margin:0;pointer-events:none;text-align:center}
+#hint span{background:#000b;color:#fff;padding:5px 10px;border-radius:8px;font-size:13px;display:inline-block;max-width:100%}
+#toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:#000d;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;pointer-events:none;max-width:90%;text-align:center}
+#busy{position:absolute;inset:0;background:#000a;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;font-size:17px;text-align:center;padding:20px}
+.spin{width:42px;height:42px;border:5px solid #fff3;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+footer{background:var(--pn);padding:6px 8px calc(6px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px}
+.r{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;align-items:center}
+.r .sep{width:1px;align-self:stretch;background:#5a6270;flex:none}
+.seg{display:inline-flex;background:#22262d;border-radius:9px;padding:3px;gap:3px;flex:none}
+.seg button{padding:7px 12px}
+.seg button:not(.on){background:transparent}
+#qbar p{margin:0;color:var(--mu);font-size:13px;flex:1;white-space:normal;min-width:180px}
+#sheet{position:absolute;left:0;right:0;bottom:0;background:var(--pn);border-top:3px solid var(--ac);padding:10px 10px 12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 -6px 20px #0008}
+#sheet .row{display:flex;gap:6px;align-items:center}
+#sheet input{background:#22262d;border:2px solid #5a6270;border-radius:8px;padding:10px;min-width:0}
+#sLab{flex:1;font-size:14px}
+#sVal{flex:1;font-size:26px;font-weight:700;letter-spacing:.5px}
+#sVal:focus,#sLab:focus{outline:none;border-color:var(--ac)}
+#sMic{font-size:22px;padding:10px 16px}
+#sMic.rec{background:var(--rd);color:#fff;animation:p 1s ease-in-out infinite}
+@keyframes p{50%{opacity:.6}}
+#sChips{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+#sChips button{padding:6px 10px;font-size:13px}
+#sInfo{color:var(--mu);font-size:13px;min-height:1em}
+#sInfo b{color:var(--ac)}
+dialog{background:var(--pn);color:var(--tx);border:0;border-radius:12px;padding:16px;width:min(560px,94vw);max-height:88dvh}
+dialog::backdrop{background:#000a}
+dialog h2{margin:0 0 10px;font-size:18px}
+dialog label{display:block;margin:10px 0 4px;color:var(--mu);font-size:13px}
+dialog input,dialog select{width:100%;background:#22262d;border:1px solid #5a6270;border-radius:8px;padding:10px}
+dialog p{color:var(--mu);font-size:13px;line-height:1.45}
+dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+#recap pre{white-space:pre-wrap;background:#22262d;border-radius:8px;padding:10px;max-height:55dvh;overflow:auto;font-size:13px;margin:0}
+[hidden]{display:none!important}
+</style></head><body>
+<header>
+ <div id="tabs"></div>
+ <label class="b" title="Prendre une photo">📷<input id="fiCam" type="file" accept="image/*" capture="environment" hidden></label>
+ <label class="b" title="Ajouter des photos de la galerie">+ Photos<input id="fi" type="file" accept="image/*" multiple hidden></label>
+</header>
+<main>
+ <canvas id="cv"></canvas>
+ <p id="hint" hidden><span></span></p>
+ <div id="toast" hidden></div>
+ <div id="empty">
+  <label class="b">Ajouter des photos<input id="fi2" type="file" accept="image/*" multiple hidden></label>
+  <p>Prenez une photo : l’appli repère chaque face de mur, le pignon, les fenêtres, portes et points singuliers, redresse chaque face en dessin propre et place toutes les flèches de cotes. Vous n’avez plus qu’à dicter ou taper les mesures.<br><br>Première fois : renseignez votre clé IA gratuite Google Gemini dans ⚙.</p>
+ </div>
+ <div id="busy" hidden><div class="spin"></div><div id="busyT">Analyse de la photo…</div></div>
+ <div id="sheet" hidden>
+  <div class="row"><input id="sLab" placeholder="Libellé (ex. Largeur fenêtre)"><button id="sDel" title="Supprimer cet élément">🗑</button><button id="sClose" title="Fermer">✕</button></div>
+  <div id="sChips" hidden></div>
+  <div class="row"><button id="sPrev" title="Cote précédente">◀</button><input id="sVal" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="Cote"><button id="sMic" title="Dicter">🎤</button><button id="sNext" class="pri" title="Cote suivante">▶</button></div>
+  <div id="sInfo"></div>
+ </div>
+</main>
+<footer id="qbar" hidden>
+ <div class="r"><p>Faites glisser les 4 poignées rouges sur les 4 coins du mur (bas du mur au sol, haut sous la gouttière). Zoomez à deux doigts pour être précis.</p>
+ <button id="qCancel">Annuler</button><button id="qOk" class="pri">✓ Redresser</button></div>
+</footer>
+<footer id="bar" hidden>
+ <div class="r">
+  <span class="seg"><button data-v="photo">Photo</button><button data-v="dessin">📐 Dessin</button></span>
+  <span class="sep"></span>
+  <span class="r" id="modes">
+   <button data-m="edit" class="on">✋ Ajuster</button>
+   <button data-m="rect">▭ Ouverture</button>
+   <button data-m="pt">◯ Point</button>
+   <button data-m="dim">↔ Cote</button>
+   <button data-m="note">✎ Note</button>
+   <button data-m="del">🗑 Gomme</button>
+  </span>
+ </div>
+ <div class="r">
+  <button id="bDict">🎤 Dictée</button>
+  <button id="bUndo">↶</button>
+  <span class="seg" id="faces" hidden></span>
+  <button id="bPig" data-only="dessin">⌂ Pignon</button>
+  <button id="bBg" data-only="dessin">Fond</button>
+  <button id="bQuad" data-only="dessin">Coins</button>
+  <button id="bDelF" data-only="dessin">Suppr. face</button>
+  <span class="sep"></span>
+  <button id="bLab">Étiquettes</button>
+  <button id="bFit">⤢</button>
+  <button id="bExp">⇪ Exporter</button>
+  <button id="bRec">Récap</button>
+  <button id="bRen">Renommer</button>
+  <button id="bDelP">Suppr. photo</button>
+  <span class="sep"></span>
+  <button id="bAuto" title="Repérer murs, ouvertures et points (IA)">✨ Détecter</button>
+  <button id="bSet">⚙</button>
+ </div>
+</footer>
+
+<dialog id="dSet">
+ <h2>Réglages</h2>
+ <label for="kUnit">Unité affichée après les cotes</label>
+ <select id="kUnit"><option value="">aucune</option><option value="cm">cm</option><option value="m">m</option></select>
+ <h2 style="margin-top:18px">✨ Détection automatique (Google Gemini)</h2>
+ <p>La photo est envoyée à l’IA Google Gemini, qui repère les faces de mur, le pignon, les ouvertures et les points singuliers. Il faut une clé API gratuite (aistudio.google.com). La clé reste enregistrée uniquement sur cet appareil. Sans clé, tout le reste marche gratuitement, mais les coins du mur et les ouvertures sont à placer au doigt.</p>
+ <label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input id="kAuto" type="checkbox" style="width:auto"> Analyser automatiquement chaque nouvelle photo</label>
+ <label for="kKey">Clé API Google Gemini</label><input id="kKey" type="password" placeholder="AIzaSy…" autocomplete="off">
+ <label for="kModel">Modèle Gemini</label>
+ <select id="kModel">
+  <option value="gemini-3.8-flash">Gemini 3.8 Flash — rapide, précis et gratuit (recommandé)</option>
+  <option value="gemini-3.8-pro">Gemini 3.8 Pro — précision
