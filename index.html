@@ -81,7 +81,7 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 
 <!-- ===== ACCUEIL ===== -->
 <section id="home" class="screen">
- <div class="bar"><h1>📐 Métré photo</h1><button id="hSet">⚙ Clé Gemini</button></div>
+ <div class="bar"><h1>📐 Métré photo <small style="font-size:12px;color:var(--mu);font-weight:400">version 4</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
  <div class="big">
   <label class="cam">📷 Prendre une photo<input id="fCam" type="file" accept="image/*" capture="environment" hidden></label>
   <label class="gal">🖼 Choisir une photo<input id="fGal" type="file" accept="image/*" hidden></label>
@@ -132,7 +132,7 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button id="busyRetry" class="pri" hidden>Réessayer</button><button id="busyCopy" hidden>Copier le détail de l’erreur</button><button id="busySet" hidden>⚙ Clé / modèle</button><button id="busyManual" hidden>Dessiner à la main</button><button id="busyCancel">Annuler</button></div></div>
 
 <dialog id="dSet">
- <h2>Clé API Gemini</h2>
+ <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 4)</small></h2>
  <p>L’analyse des photos se fait avec l’IA Gemini de Google. Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> puis collez-la ici. Elle reste enregistrée sur cet appareil uniquement.</p>
  <p>Offre gratuite : nombre d’analyses limité par jour, et Google peut utiliser les photos envoyées pour améliorer ses services. Avec facturation activée, quelques centimes au plus par photo.</p>
  <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza…" autocomplete="off">
