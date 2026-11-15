@@ -11,14 +11,15 @@ body{height:100dvh;display:flex;flex-direction:column;background:var(--bg);color
 button,input,select{font:inherit;color:inherit}
 button{background:var(--pn2);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;white-space:nowrap}
 button:active{filter:brightness(1.25)}
+button:disabled{opacity:.4}
 .pri{background:var(--ac);color:#1d2127;font-weight:700}
 .on{background:var(--ac)!important;color:#1d2127!important;font-weight:700}
 [hidden]{display:none!important}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column}
 .bar{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--pn);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .bar h1{font-size:19px;margin:0;flex:1}
+.bar small{font-size:12px;color:var(--mu);font-weight:400}
 .grow{flex:1}
-
 /* accueil */
 #home .big{display:flex;gap:12px;padding:16px;flex-wrap:wrap}
 #home .big label{flex:1 1 220px;display:flex;align-items:center;justify-content:center;gap:10px;padding:26px 16px;border-radius:14px;font-size:20px;font-weight:700;cursor:pointer}
@@ -32,20 +33,21 @@ button:active{filter:brightness(1.25)}
 .card small{color:var(--mu)}
 .card button{position:absolute;top:6px;right:6px;padding:6px 9px;background:#000a}
 #home p.info{color:var(--mu);margin:0 16px 12px;line-height:1.45;font-size:14px}
-
-/* plan */
-#tabs{display:flex;gap:6px}
-#tabs button{padding:8px 12px}
-#pname{background:none;font-weight:700;font-size:17px;padding:8px 6px;max-width:30vw;overflow:hidden;text-overflow:ellipsis}
+/* métré */
+#pname{background:none;font-weight:700;font-size:17px;padding:8px 6px;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
 #work{flex:1;min-height:0;display:flex}
-#stage{flex:1;position:relative;min-width:0;background:#fff}
+#stage{flex:1;position:relative;min-width:0;background:#15181d}
 #cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+#banner{position:absolute;left:10px;right:10px;top:10px;background:#000d;color:#fff;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px}
+#banner .spin{width:22px;height:22px;border-width:3px}
+#banner pre{margin:0;white-space:pre-wrap;font:13px system-ui;color:#ffb4a2;flex:1 1 100%;user-select:text;-webkit-user-select:text}
+.spin{border:4px solid #fff3;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite;flex:none}
+@keyframes s{to{transform:rotate(360deg)}}
 #panel{width:330px;background:var(--pn);display:flex;flex-direction:column;padding:12px;gap:10px;overflow:auto}
 @media (orientation:portrait){#work{flex-direction:column}#panel{width:auto;padding:10px}}
 #dLab{font-weight:700;font-size:17px;line-height:1.25}
 #dPos{color:var(--mu);font-size:13px}
 #dVal{background:#1d2127;border-radius:10px;padding:10px 14px;font-size:34px;font-weight:800;min-height:62px;display:flex;align-items:center;justify-content:space-between;border:2px solid var(--ac)}
-#dVal span{color:var(--mu);font-size:14px;font-weight:400}
 #keys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 #keys button{font-size:24px;padding:12px 0;font-weight:700}
 #keys .nav{font-size:18px}
@@ -56,17 +58,6 @@ button:active{filter:brightness(1.25)}
 #sum b{color:var(--ac)}
 #editBar{display:flex;gap:6px;flex-wrap:wrap}
 #editBar p{margin:0;color:var(--mu);font-size:13px;flex:1 1 100%}
-#photoView{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
-#photoView img{max-width:100%;max-height:100%}
-#photoView button{position:absolute;top:10px;right:10px}
-
-/* analyse */
-#busy{position:fixed;inset:0;background:#000d;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;text-align:center;padding:20px;z-index:10}
-#busy img{max-width:min(80vw,520px);max-height:45vh;border-radius:10px;opacity:.8}
-.spin{width:44px;height:44px;border:5px solid #fff3;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite}
-@keyframes s{to{transform:rotate(360deg)}}
-#busyErr{color:#ffb4a2;max-width:620px;line-height:1.4;white-space:pre-wrap;user-select:text;-webkit-user-select:text;font-size:14px}
-
 dialog{background:var(--pn);color:var(--tx);border:0;border-radius:14px;padding:18px;width:min(560px,94vw);max-height:90dvh}
 dialog::backdrop{background:#000b}
 dialog h2{margin:0 0 8px;font-size:19px}
@@ -79,9 +70,8 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000e;color:#fff;padding:10px 16px;border-radius:10px;font-size:15px;z-index:20;max-width:90vw;text-align:center;pointer-events:none}
 </style></head><body>
 
-<!-- ===== ACCUEIL ===== -->
 <section id="home" class="screen">
- <div class="bar"><h1>📐 Métré photo <small style="font-size:12px;color:var(--mu);font-weight:400">version 4</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
+ <div class="bar"><h1>📐 Métré photo <small>version 5</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
  <div class="big">
   <label class="cam">📷 Prendre une photo<input id="fCam" type="file" accept="image/*" capture="environment" hidden></label>
   <label class="gal">🖼 Choisir une photo<input id="fGal" type="file" accept="image/*" hidden></label>
@@ -90,27 +80,19 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
  <div id="list"></div>
 </section>
 
-<!-- ===== PLAN ===== -->
 <section id="planv" class="screen" hidden>
  <div class="bar">
   <button id="back">←</button>
   <button id="pname"></button>
-  <div id="tabs"></div>
   <span class="grow"></span>
-  <button id="bPhoto">🖼 Photo</button>
   <button id="bEdit">✎ Modifier</button>
   <button id="bShare" class="pri">⇪ Partager</button>
  </div>
  <div id="work">
-  <div id="stage"><canvas id="cv"></canvas>
-   <div id="photoView" hidden><img alt="Photo d’origine"><button id="pvClose" class="pri">Fermer</button></div>
-  </div>
+  <div id="stage"><canvas id="cv"></canvas><div id="banner" hidden></div></div>
   <div id="panel">
-   <div id="inBox">
-    <div id="dPos"></div>
-    <div id="dLab"></div>
-   </div>
-   <div id="dVal"><b id="dTxt"></b><span id="dHint"></span></div>
+   <div><div id="dPos"></div><div id="dLab"></div></div>
+   <div id="dVal"><b id="dTxt"></b></div>
    <div id="keys">
     <button>7</button><button>8</button><button>9</button><button class="nav" data-k="prev">◀</button>
     <button>4</button><button>5</button><button>6</button><button class="nav" id="mic" data-k="mic">🎤</button>
@@ -118,9 +100,9 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
     <button>,</button><button>0</button><button class="pri nav" data-k="next" style="grid-column:span 2">Suivant ▶</button>
    </div>
    <div id="editBar" hidden>
-    <p>Glissez une fenêtre, porte ou point pour le déplacer. Touchez-le pour le renommer ou le supprimer.</p>
-    <button data-add="fenetre">+ Fenêtre</button><button data-add="porte">+ Porte</button><button data-add="point">+ Point</button>
-    <button id="bShape">Forme</button><button id="bAddFace">+ Face</button><button id="bDelFace">Suppr. face</button>
+    <p>Glissez les poignées blanches pour recaler les coins, les fenêtres et les points. Touchez une fenêtre ou un point pour le renommer ou le supprimer.</p>
+    <button data-add="fenetre">+ Fenêtre</button><button data-add="porte">+ Porte</button><button data-add="point">+ Point</button><button data-add="cote">+ Cote</button>
+    <button id="bShape">Forme de la face</button><button id="bAddFace">+ Face</button><button id="bDelFace">Suppr. face</button>
     <button id="bRedo">↻ Refaire l’analyse</button><button id="bEditOk" class="pri">Terminé</button>
    </div>
    <div id="sum"></div>
@@ -128,15 +110,12 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
  </div>
 </section>
 
-<div id="busy" hidden><img id="busyImg" alt=""><div class="spin" id="busySpin"></div><div id="busyT">Gemini dessine la façade…</div><div id="busyErr"></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button id="busyRetry" class="pri" hidden>Réessayer</button><button id="busyCopy" hidden>Copier le détail de l’erreur</button><button id="busySet" hidden>⚙ Clé / modèle</button><button id="busyManual" hidden>Dessiner à la main</button><button id="busyCancel">Annuler</button></div></div>
-
 <dialog id="dSet">
- <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 4)</small></h2>
+ <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 5)</small></h2>
  <p>L’analyse des photos se fait avec l’IA Gemini de Google. Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> puis collez-la ici. Elle reste enregistrée sur cet appareil uniquement.</p>
- <p>Offre gratuite : nombre d’analyses limité par jour, et Google peut utiliser les photos envoyées pour améliorer ses services. Avec facturation activée, quelques centimes au plus par photo.</p>
- <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza…" autocomplete="off">
- <label for="kModel">Modèle (choisissez dans la liste ou tapez son nom exact, ex. gemini-2.5-flash)</label><input id="kModel" list="kModels" autocomplete="off" spellcheck="false"><datalist id="kModels"></datalist>
+ <p>Offre gratuite : nombre d’analyses limité par jour, et Google peut utiliser les photos envoyées pour améliorer ses services.</p>
+ <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza… ou AQ.…" autocomplete="off">
+ <label for="kModel">Modèle (choisissez dans la liste ou tapez son nom exact). Les « Flash » sont les plus rapides.</label><input id="kModel" list="kModels" autocomplete="off" spellcheck="false"><datalist id="kModels"></datalist>
  <p id="kMsg"></p>
  <div class="act"><button id="kCancel">Annuler</button><button id="kTest">Tester la clé</button><button id="kOk" class="pri">Enregistrer</button></div>
 </dialog>
@@ -144,12 +123,13 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 
 <script>
 'use strict';
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s);
 const API='https://generativelanguage.googleapis.com/v1beta';
 const DEFAULT_MODEL='gemini-2.5-flash';
 const uid=()=>Math.random().toString(36).slice(2,10);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let toastT;function toast(t,ms=2600){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,ms)}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 /* ================= réglages ================= */
 const settings=(()=>{try{return JSON.parse(localStorage.getItem('metre2.settings')||'{}')}catch(_){return{}}})();
@@ -157,18 +137,18 @@ function saveSettings(){try{localStorage.setItem('metre2.settings',JSON.stringif
 
 /* ================= stockage ================= */
 let dbp;
-function db(){return dbp||(dbp=new Promise((ok,ko)=>{const r=indexedDB.open('metre-plans',1);r.onupgradeneeded=()=>r.result.createObjectStore('plans',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)}))}
+function db(){return dbp||(dbp=new Promise((ok,ko)=>{const r=indexedDB.open('metre-photo-v5',1);r.onupgradeneeded=()=>r.result.createObjectStore('plans',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)}))}
 async function dbDo(fn){try{const d=await db();return await new Promise((ok,ko)=>{const t=d.transaction('plans','readwrite'),r=fn(t.objectStore('plans'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ko(t.error)})}catch(e){console.warn(e)}}
-let plans=[],plan=null,fi=0;
-let saveT;function save(p=plan){if(!p)return;clearTimeout(saveT);saveT=setTimeout(()=>dbDo(st=>st.put({id:p.id,name:p.name,t:p.t,blob:p.blob,faces:p.faces})),250)}
+let plans=[],plan=null;
+let saveT;function save(p=plan){if(!p)return;clearTimeout(saveT);saveT=setTimeout(()=>dbDo(st=>st.put({id:p.id,name:p.name,t:p.t,blob:p.blob,w:p.w,h:p.h,faces:p.faces})),250)}
 
 /* ================= accueil ================= */
 function showHome(){
  stopDict();plan=null;$('#home').hidden=false;$('#planv').hidden=true;
- $('#hInfo').innerHTML=settings.key?'Prenez la façade bien en entier, le plus de face possible. Gemini dessine le plan et place toutes les flèches de cotes ; vous n’avez plus qu’à taper ou dicter les mesures.'
+ $('#hInfo').innerHTML=settings.key?'Prenez la façade en entier. Gemini pose les flèches de cotes et entoure les points singuliers directement sur la photo ; vous tapez ou dictez les mesures.'
   :'⚠️ Renseignez d’abord votre clé Gemini (bouton ⚙ en haut à droite).';
- $('#list').innerHTML=plans.slice().sort((a,b)=>b.t-a.t).map(p=>{const ds=p.faces.flatMap(dimsOf),n=ds.filter(d=>d.v).length;
-  return`<div class="card" data-id="${p.id}"><img src="${p.url}" alt=""><button data-del="${p.id}" title="Supprimer">🗑</button><div><b>${esc(p.name)}</b><small>${new Date(p.t).toLocaleDateString('fr-FR')} · ${p.faces.length} face(s) · ${n}/${ds.length} cotes</small></div></div>`}).join('');
+ $('#list').innerHTML=plans.slice().sort((a,b)=>b.t-a.t).map(p=>{const ds=allDims(p),n=ds.filter(d=>d.v).length;
+  return`<div class="card" data-id="${p.id}"><img src="${p.url}" alt=""><button data-del="${p.id}" title="Supprimer">🗑</button><div><b>${esc(p.name)}</b><small>${new Date(p.t).toLocaleDateString('fr-FR')} · ${n}/${ds.length} cotes</small></div></div>`}).join('');
 }
 $('#list').onclick=async e=>{
  const del=e.target.closest('[data-del]');
@@ -183,66 +163,49 @@ async function newFromPhoto(file){
  const k=Math.min(1,2000/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);
  c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
- const n=plans.length+1,p={id:uid(),name:'Métré '+n,t:Date.now(),blob,faces:[],url:URL.createObjectURL(blob)};
+ const p={id:uid(),name:'Métré '+(plans.length+1),t:Date.now(),blob,w:c.width,h:c.height,faces:[],url:URL.createObjectURL(blob)};
+ plans.push(p);save(p);await openPlan(p);
  if(!settings.key){openSettings(()=>analyse(p));return}
  analyse(p);
 }
 
 /* ================= Gemini ================= */
-const S={type:'STRING'},Nb=d=>({type:'NUMBER',description:d});
+// Coordonnées Gemini : [y, x] normalisés 0–1000 (convention native de Gemini)
+const PT={type:'ARRAY',items:{type:'NUMBER'},description:'[y, x] normalisés 0-1000'};
 const SCHEMA={type:'OBJECT',required:['faces'],properties:{faces:{type:'ARRAY',items:{type:'OBJECT',
- required:['name','shape','width_cm','height_cm','ridge_height_cm','ridge_x_cm','openings','points','extra_dims'],
- propertyOrdering:['name','shape','width_cm','height_cm','ridge_height_cm','ridge_x_cm','openings','points','extra_dims'],
- properties:{
-  name:S,
-  shape:{type:'STRING',enum:['rectangle','pignon','appentis']},
-  width_cm:Nb('total width of the wall face at ground level'),
-  height_cm:Nb('height from ground to the eaves/gutter (left side for appentis)'),
-  ridge_height_cm:Nb('pignon: height from ground to the ridge apex; appentis: height of the right side; rectangle: same as height_cm'),
-  ridge_x_cm:Nb('pignon: horizontal position of the apex from the left corner; otherwise 0'),
-  openings:{type:'ARRAY',items:{type:'OBJECT',required:['label','kind','x_cm','y_cm','width_cm','height_cm'],propertyOrdering:['label','kind','x_cm','y_cm','width_cm','height_cm'],properties:{
-   label:S,kind:{type:'STRING',enum:['fenetre','porte','porte_fenetre','garage','baie','soupirail','autre']},
-   x_cm:Nb('left edge, from the left corner of the face'),y_cm:Nb('bottom edge (sill), from the ground'),width_cm:Nb('width'),height_cm:Nb('height')}}},
-  points:{type:'ARRAY',items:{type:'OBJECT',required:['label','x_cm','y_cm'],properties:{label:S,x_cm:Nb('from left corner'),y_cm:Nb('from ground')}}},
-  extra_dims:{type:'ARRAY',items:{type:'OBJECT',required:['label','x1_cm','y1_cm','x2_cm','y2_cm'],properties:{label:S,x1_cm:Nb('start x'),y1_cm:Nb('start y'),x2_cm:Nb('end x'),y2_cm:Nb('end y')}}}
- }}}}};
-const PROMPT=`Tu aides un artisan façadier français (ravalement, peinture, ITE, bardage) à faire le métré d'une maison à partir d'une photo.
-Ton travail : transformer la photo en PLAN D'ÉLÉVATION à plat (vue de face, sans perspective, comme un plan d'architecte) de chaque face de mur visible, pour que l'application dessine un plan propre avec les flèches de cotes. L'artisan mesurera ensuite sur place : tes dimensions ne servent qu'à dessiner le plan aux bonnes proportions.
+ required:['name','shape','bottom_left','bottom_right','top_right','top_left','apex','openings','points','extra_dims'],
+ propertyOrdering:['name','shape','bottom_left','bottom_right','top_right','top_left','apex','openings','points','extra_dims'],
+ properties:{name:{type:'STRING'},shape:{type:'STRING',enum:['rectangle','pignon','appentis']},
+  bottom_left:PT,bottom_right:PT,top_right:PT,top_left:PT,apex:PT,
+  openings:{type:'ARRAY',items:{type:'OBJECT',required:['label','kind','box_2d'],properties:{label:{type:'STRING'},kind:{type:'STRING',enum:['fenetre','porte','porte_fenetre','garage','baie','soupirail','autre']},box_2d:{type:'ARRAY',items:{type:'NUMBER'},description:'[ymin, xmin, ymax, xmax] 0-1000'}}}},
+  points:{type:'ARRAY',items:{type:'OBJECT',required:['label','point'],properties:{label:{type:'STRING'},point:PT}}},
+  extra_dims:{type:'ARRAY',items:{type:'OBJECT',required:['label','start','end'],properties:{label:{type:'STRING'},start:PT,end:PT}}}}}}}};
+const PROMPT=`Photo d'une maison pour un métré de façade (ravalement, peinture, isolation). Repère les éléments sur l'image pour y poser des flèches de cotes. Ne mesure rien.
+Coordonnées : format Gemini habituel, normalisé 0-1000 sur l'image : un point = [y, x], une boîte = [ymin, xmin, ymax, xmax]. Sois précis, au pixel près, sur les vrais angles du bâtiment.
+Ignore l'interface du téléphone (capture d'écran) et les annotations manuscrites déjà présentes.
 
-Règles :
-- Ignore l'interface du téléphone si c'est une capture d'écran (barres, boutons, bords noirs) et ignore les annotations manuscrites déjà présentes sur la photo.
-- Une "face" = un pan de mur plan : façade principale, pignon, mur latéral vu en biais, soubassement de véranda… N'inclus pas une face vue presque par la tranche. Ordre : de gauche à droite sur la photo.
-- Repère de chaque face : x = distance horizontale depuis le coin gauche de la face (vu de l'extérieur), y = hauteur depuis le sol. Unités : centimètres. Corrige la perspective : une face vue en biais doit être redressée.
-- Estime les dimensions réelles avec des repères habituels : porte d'entrée ≈ 215 cm de haut et 90 cm de large, porte de garage ≈ 200 à 240 cm de large, hauteur d'étage ≈ 250 à 280 cm, allège de fenêtre ≈ 90 à 100 cm, briques, parpaings, bardage, personnes, etc.
-- shape : "rectangle" (mur sous une gouttière), "pignon" (mur avec triangle au-dessus : ridge_height_cm = hauteur sol → pointe, ridge_x_cm = position horizontale de la pointe), "appentis" (toit à une pente : height_cm = hauteur côté gauche, ridge_height_cm = hauteur côté droit).
-- openings : TOUTES les fenêtres, portes, portes-fenêtres, portes de garage, baies, soupiraux de la face, positionnés fidèlement par rapport à la photo (alignements, espacements, hauteurs d'allège). label court et numéroté en français : "Fenêtre 1", "Porte d'entrée", "Porte de garage", "Porte-fenêtre 1"…
-- points : les points singuliers que l'artisan doit traiter ou chiffrer : grilles de ventilation, VMC, éclairages, coffrets EDF/gaz, descentes d'eau pluviale, gouttières, chevrons ou pannes apparents (un point, avec le nombre dans le label, ex. "Chevrons ×6"), antennes, paraboles, câbles, tuyaux, fissures, mousses, stores, gonds, climatiseurs, robinets, boîtes aux lettres, enseignes, plantes grimpantes. label court en français.
-- extra_dims : autres cotes utiles pour le chiffrage, en segment de (x1,y1) à (x2,y2) : hauteur de soubassement, bandeau, débord de toit, retour de mur, garde-corps, cheminée… Ne répète pas la largeur/hauteur de la face ni celles des ouvertures (l'application les ajoute). Liste vide s'il n'y en a pas.
-Sois exhaustif : l'artisan préfère supprimer un élément en trop que d'en oublier un.`;
-let abortC=null,lastPlan=null;
-async function imgB64(blob){
- const bm=await createImageBitmap(blob),k=Math.min(1,1600/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
- c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
- return c.toDataURL('image/jpeg',.85).split(',')[1]}
+faces : chaque pan de mur nettement visible (façade, pignon, mur latéral vu en biais, extension…), de gauche à droite. Ignore les pans vus presque par la tranche.
+ - bottom_left, bottom_right : pied du mur au niveau du sol (estime-le s'il est caché par des plantes) ; top_left, top_right : haut du mur sous la gouttière, ou naissance des rampants pour un pignon. Deux faces qui partagent un angle ont les mêmes coordonnées à cet angle.
+ - shape : "rectangle", "pignon" (triangle au-dessus : apex = pointe du pignon sous la toiture), "appentis" (toit à une pente). apex = [0,0] si pas de pignon.
+ - openings : toutes les fenêtres, portes, portes-fenêtres, portes de garage, baies, soupiraux de cette face, box_2d autour du cadre (tableau). label court numéroté en français ("Fenêtre 1", "Porte d'entrée", "Porte de garage"…).
+ - points : points singuliers à traiter ou chiffrer : grilles de ventilation, VMC, éclairages, coffrets EDF/gaz, descentes d'eau pluviale, chevrons ou pannes apparents (un seul point, nombre dans le label : "Chevrons ×6"), antennes, paraboles, câbles, tuyaux, fissures, mousses, stores, gonds, climatiseurs, robinets, boîtes aux lettres, plantes grimpantes. label court en français.
+ - extra_dims : autres cotes utiles (hauteur de soubassement, bandeau, débord de toit, garde-corps, retour de mur…), segment start → end. Pas la largeur/hauteur du mur ni des ouvertures (ajoutées automatiquement). Liste vide sinon.
+Sois exhaustif.`;
+const JSON_HELP=`\n\nRéponds UNIQUEMENT avec un objet JSON de cette forme :
+{"faces":[{"name":"Pignon","shape":"pignon","bottom_left":[930,190],"bottom_right":[920,630],"top_right":[240,620],"top_left":[450,185],"apex":[10,360],
+"openings":[{"label":"Fenêtre 1","kind":"fenetre","box_2d":[400,350,560,410]}],"points":[{"label":"VMC","point":[300,250]}],
+"extra_dims":[{"label":"Soubassement","start":[930,600],"end":[870,600]}]}]}`;
 const STUDIO=m=>`${API}/models/${encodeURIComponent(m)}:generateContent`;
 const VERTEX=m=>`https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(m)}:generateContent`;
 const provider=()=>settings.provider||'studio';
-const JSON_HELP=`\n\nRéponds UNIQUEMENT avec un objet JSON (sans texte autour) de cette forme :
-{"faces":[{"name":"Pignon","shape":"pignon","width_cm":850,"height_cm":370,"ridge_height_cm":780,"ridge_x_cm":425,
-"openings":[{"label":"Fenêtre 1","kind":"fenetre","x_cm":120,"y_cm":100,"width_cm":120,"height_cm":130}],
-"points":[{"label":"Grille ventilation","x_cm":300,"y_cm":250}],
-"extra_dims":[{"label":"Soubassement","x1_cm":0,"y1_cm":0,"x2_cm":0,"y2_cm":60}]}]}
-kind ∈ fenetre, porte, porte_fenetre, garage, baie, soupirail, autre. shape ∈ rectangle, pignon, appentis.`;
-let lastErr='';
 class GemErr extends Error{constructor(msg,detail){super(msg);this.detail=detail}}
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-// envoie la requête ; essaie plusieurs variantes si Google refuse un réglage
+function thinkingFast(model){const v=+((model.match(/gemini-(\d+(?:\.\d+)?)/)||[])[1]||0);
+ if(v>=3)return{thinkingLevel:'low'};if(/flash/.test(model))return{thinkingBudget:0};return{thinkingBudget:128}}
+// envoie la requête ; essaie des variantes plus simples si Google refuse un réglage
 async function callGemini(parts,signal,{key=settings.key,model=settings.model||DEFAULT_MODEL,prov=provider(),light=false}={}){
  const url=prov=='vertex'?VERTEX(model):STUDIO(model);
- const variants=light?[{}]:[
-  {responseMimeType:'application/json',responseSchema:SCHEMA,maxOutputTokens:32768},
-  {responseMimeType:'application/json',maxOutputTokens:32768,_help:1},
-  {_help:1}];
+ const base={responseMimeType:'application/json',responseSchema:SCHEMA,maxOutputTokens:16384};
+ const variants=light?[{}]:[{...base,thinkingConfig:thinkingFast(model)},base,{responseMimeType:'application/json',maxOutputTokens:16384,_help:1},{_help:1}];
  let last=null;
  for(const v of variants){
   const gc={...v};delete gc._help;
@@ -250,21 +213,24 @@ async function callGemini(parts,signal,{key=settings.key,model=settings.model||D
   for(let attempt=0;attempt<3;attempt++){
    let r,data={};
    try{r=await fetch(url,{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:ps}],...(Object.keys(gc).length?{generationConfig:gc}:{})})})}
-   catch(e){if(e.name=='AbortError')throw e;throw new GemErr('Pas de connexion à Gemini (Internet coupé, ou page ouverte d’une façon qui bloque les connexions).',String(e))}
+   catch(e){if(e.name=='AbortError')throw e;throw new GemErr('Pas de connexion à Gemini (Internet coupé ?).',String(e))}
    try{data=await r.json()}catch(_){}
    if(r.ok)return data;
    const m=(data.error&&data.error.message)||('HTTP '+r.status),st=(data.error&&data.error.status)||'';
    last={status:r.status,m,st,detail:`HTTP ${r.status} ${st} · modèle ${model} · ${prov=='vertex'?'Google Cloud':'AI Studio'} · ${m}`};
-   if(r.status>=500||(r.status==429&&attempt==0)){await sleep(2500*(attempt+1));continue}
+   if(r.status>=500||(r.status==429&&attempt==0)){await sleep(2000*(attempt+1));continue}
    break}
   if(!last)continue;
   if(/API key|API_KEY|UNAUTHENTICATED|PERMISSION_DENIED/i.test(last.m+last.st)||last.status==401||last.status==403)throw new GemErr('Clé refusée par Google : '+last.m,last.detail);
   if(last.status==404)throw new GemErr('Modèle « '+model+' » introuvable avec cette clé. Corrigez le nom du modèle dans ⚙.',last.detail);
   if(last.status==429)throw new GemErr('Quota Gemini dépassé : '+last.m,last.detail);
   if(last.status!=400)throw new GemErr('Gemini : '+last.m,last.detail);
-  // 400 : on essaie la variante suivante (sans schéma, puis sans réglage)
  }
  throw new GemErr('Gemini : '+(last?last.m:'erreur inconnue'),last&&last.detail)}
+async function imgB64(blob){
+ const bm=await createImageBitmap(blob),k=Math.min(1,1280/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
+ c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
+ return c.toDataURL('image/jpeg',.82).split(',')[1]}
 async function gemini(blob,signal){
  const data=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal);
  if(data.promptFeedback&&data.promptFeedback.blockReason)throw new GemErr('Gemini a refusé la photo ('+data.promptFeedback.blockReason+').',JSON.stringify(data.promptFeedback));
@@ -272,195 +238,185 @@ async function gemini(blob,signal){
  const txt=((cand.content&&cand.content.parts)||[]).filter(p=>!p.thought).map(p=>p.text||'').join('');
  if(!txt)throw new GemErr('Réponse vide de Gemini ('+(cand.finishReason||'?')+').',JSON.stringify(cand).slice(0,400));
  const a=txt.indexOf('{'),b=txt.lastIndexOf('}');
- let out;try{out=JSON.parse(txt.slice(a,b+1))}catch(_){throw new GemErr(cand.finishReason=='MAX_TOKENS'?'Réponse coupée (trop d’éléments). Réessayez.':'Réponse illisible. Réessayez.',txt.slice(0,400))}
- return out}
-const numOr=(v,d)=>Number.isFinite(+v)&&v!==null&&v!==''?+v:d;
+ try{return JSON.parse(txt.slice(a,b+1))}catch(_){throw new GemErr(cand.finishReason=='MAX_TOKENS'?'Réponse coupée (trop d’éléments). Réessayez.':'Réponse illisible. Réessayez.',txt.slice(0,400))}}
+// conversion vers [x, y] 0-1000
+const cl=v=>Math.min(1000,Math.max(0,+v||0));
+const yx=a=>Array.isArray(a)&&a.length>=2&&Number.isFinite(+a[0])&&Number.isFinite(+a[1])?[cl(a[1]),cl(a[0])]:null;
 function sanitize(out){
  const faces=[];
  for(const f of (out&&out.faces)||[]){
-  const w=Math.max(100,numOr(f.width_cm,800)),h=Math.max(50,numOr(f.height_cm,300));
-  let shape=['rectangle','pignon','appentis'].includes(f.shape)?f.shape:'rectangle';
-  let rh=numOr(f.ridge_height_cm,h),rx=numOr(f.ridge_x_cm,w/2);
-  if(shape=='pignon'&&rh<=h+20)shape='rectangle';
-  if(shape=='pignon')rx=Math.min(w*.95,Math.max(w*.05,rx||w/2));
-  if(shape=='appentis')rh=Math.max(30,rh);
-  const cl=(v,a,b)=>Math.min(b,Math.max(a,numOr(v,a)));
-  const top=Math.max(h,rh);
-  const ops=((f.openings)||[]).map(o=>{const ow=cl(o.width_cm,20,w),oh=cl(o.height_cm,20,top);return{id:uid(),label:String(o.label||'Ouverture'),kind:o.kind||'fenetre',x:cl(o.x_cm,0,w-ow),y:cl(o.y_cm,0,top-oh),w:ow,h:oh}});
-  const pts=((f.points)||[]).map(p=>({id:uid(),label:String(p.label||'Point'),x:cl(p.x_cm,-50,w+50),y:cl(p.y_cm,0,top+80)}));
-  const ex=((f.extra_dims)||[]).map(d=>({id:uid(),label:String(d.label||'Cote'),x1:numOr(d.x1_cm,0),y1:numOr(d.y1_cm,0),x2:numOr(d.x2_cm,0),y2:numOr(d.y2_cm,0)})).filter(d=>Math.hypot(d.x2-d.x1,d.y2-d.y1)>5);
-  faces.push({id:uid(),name:String(f.name||'Face '+(faces.length+1)),shape,w,h,rh:shape=='rectangle'?h:rh,rx,ops,pts,ex,vals:{}});
+  const bl=yx(f.bottom_left),br=yx(f.bottom_right),tr=yx(f.top_right),tl=yx(f.top_left);if(!bl||!br||!tr||!tl)continue;
+  if(Math.abs(br[0]-bl[0])<15&&Math.abs(tr[0]-tl[0])<15)continue;
+  let shape=['rectangle','pignon','appentis'].includes(f.shape)?f.shape:'rectangle',apex=yx(f.apex);
+  if(shape=='pignon'&&(!apex||(apex[0]==0&&apex[1]==0)||apex[1]>Math.min(tl[1],tr[1])-5))shape='rectangle';
+  if(shape!='pignon')apex=null;
+  const ops=(f.openings||[]).map(o=>{const b=o.box_2d;if(!Array.isArray(b)||b.length<4)return null;const[y1,x1,y2,x2]=b.map(cl);
+   return Math.abs(x2-x1)<3||Math.abs(y2-y1)<3?null:{id:uid(),label:String(o.label||'Ouverture'),kind:o.kind||'fenetre',x1:Math.min(x1,x2),y1:Math.min(y1,y2),x2:Math.max(x1,x2),y2:Math.max(y1,y2)}}).filter(Boolean);
+  const pts=(f.points||[]).map(p=>{const q=yx(p.point);return q&&{id:uid(),label:String(p.label||'Point'),x:q[0],y:q[1]}}).filter(Boolean);
+  const ex=(f.extra_dims||[]).map(d=>{const a=yx(d.start),b=yx(d.end);return a&&b&&Math.hypot(b[0]-a[0],b[1]-a[1])>5?{id:uid(),label:String(d.label||'Cote'),a,b}:null}).filter(Boolean);
+  faces.push({id:uid(),name:String(f.name||'Face '+(faces.length+1)),shape,bl,br,tr,tl,apex,ops,pts,ex,vals:{}});
  }
  return faces}
-function defaultFace(n){return{id:uid(),name:'Face '+n,shape:'pignon',w:850,h:370,rh:780,rx:425,ops:[],pts:[],ex:[],vals:{}}}
+function defaultFace(n,x0=300,x1=700){return{id:uid(),name:'Face '+n,shape:'rectangle',bl:[x0,800],br:[x1,800],tr:[x1,350],tl:[x0,350],apex:null,ops:[],pts:[],ex:[],vals:{}}}
 
+let abortC=null,lastErr='',busy=false;
+function banner(html){const b=$('#banner');if(!html){b.hidden=true;return}b.innerHTML=html;b.hidden=false}
 async function analyse(p){
- lastPlan=p;
- $('#busy').hidden=false;$('#busyImg').src=p.url;$('#busySpin').hidden=false;$('#busyT').textContent='Gemini dessine le plan de la façade… (10 à 40 s)';
- $('#busyErr').textContent='';$('#busyRetry').hidden=$('#busyManual').hidden=$('#busyCopy').hidden=$('#busySet').hidden=true;
- abortC=new AbortController();
+ if(plan!==p)await openPlan(p);
+ busy=true;abortC=new AbortController();render();
+ banner('<div class="spin" style="width:22px;height:22px"></div><span class="grow">Gemini pose les flèches sur la photo…</span><button id="bnCancel">Annuler</button>');
+ $('#bnCancel').onclick=()=>abortC.abort();
+ const t0=Date.now();
  try{
   const faces=sanitize(await gemini(p.blob,abortC.signal));
-  if(!faces.length)throw new Error('Aucune façade reconnue sur cette photo.');
-  p.faces=faces;
-  if(!plans.includes(p))plans.push(p);save(p);
-  $('#busy').hidden=true;openPlan(p);
-  const n=p.faces.flatMap(dimsOf).length;toast(`${p.faces.length} face(s) dessinée(s), ${n} cotes à saisir`);
+  if(!faces.length)throw new GemErr('Aucune façade reconnue sur cette photo.','');
+  p.faces=faces;save(p);busy=false;banner(null);
+  if(plan===p){const d=allDims(p).find(x=>!x.v);sel=d&&d.key;render()}
+  toast(`${allDims(p).length} cotes placées en ${Math.round((Date.now()-t0)/1000)} s`);
  }catch(e){
-  if(e.name=='AbortError'){$('#busy').hidden=true;return}
-  lastErr=(e.detail||e.message)+' · navigateur : '+navigator.userAgent+' · page : '+location.protocol;
-  $('#busySpin').hidden=true;$('#busyT').textContent='L’analyse n’a pas abouti';$('#busyErr').textContent=e.message+(e.detail&&e.detail!=e.message?'\n\nDétail : '+e.detail:'');
-  $('#busyRetry').hidden=$('#busyManual').hidden=$('#busyCopy').hidden=$('#busySet').hidden=false;
+  busy=false;render();
+  if(e.name=='AbortError'){banner('<span class="grow">Analyse annulée.</span><button id="bnRetry" class="pri">Relancer</button><button id="bnManual">Placer à la main</button>');}
+  else{lastErr=(e.detail||e.message)+' · '+navigator.userAgent;
+   banner(`<span class="grow"><b>L’analyse n’a pas abouti.</b></span><button id="bnRetry" class="pri">Réessayer</button><button id="bnManual">Placer à la main</button><button id="bnSet">⚙</button><button id="bnCopy">Copier le détail</button><pre>${esc(e.message)}${e.detail&&e.detail!=e.message?'\n'+esc(e.detail):''}</pre>`);
+   $('#bnSet').onclick=()=>openSettings(()=>analyse(p));
+   $('#bnCopy').onclick=async()=>{try{await navigator.clipboard.writeText(lastErr);toast('Détail copié (il ne contient pas votre clé)')}catch(_){prompt('Copiez ce texte :',lastErr)}}}
+  $('#bnRetry').onclick=()=>settings.key?analyse(p):openSettings(()=>analyse(p));
+  $('#bnManual').onclick=()=>{banner(null);if(!p.faces.length)p.faces=[defaultFace(1)];save(p);const d=allDims(p)[0];sel=d&&d.key;editMode(true)};
  }
 }
-$('#busyCopy').onclick=async()=>{try{await navigator.clipboard.writeText(lastErr);toast('Détail copié : collez-le dans le chat (il ne contient pas votre clé)')}catch(_){prompt('Copiez ce texte :',lastErr)}};
-$('#busySet').onclick=()=>{$('#busy').hidden=true;openSettings(()=>analyse(lastPlan))};
-$('#busyCancel').onclick=()=>{if(abortC)abortC.abort();$('#busy').hidden=true};
-$('#busyRetry').onclick=()=>{if(!settings.key){openSettings(()=>analyse(lastPlan));return}analyse(lastPlan)};
-$('#busyManual').onclick=()=>{const p=lastPlan;$('#busy').hidden=true;if(!p.faces.length)p.faces=[defaultFace(1)];if(!plans.includes(p))plans.push(p);save(p);openPlan(p);editMode(true)};
 
-/* ================= géométrie du plan ================= */
-// valeur saisie -> centimètres ("8,50" = mètres)
+/* ================= cotes ================= */
+// valeur saisie -> cm ("3,70" = mètres)
 function cm(v){if(v==null||v==='')return NaN;const s=String(v).trim().replace(/\s/g,'');const n=parseFloat(s.replace(',','.'));if(!Number.isFinite(n))return NaN;return /[.,]\d/.test(s)?n*100:n}
-function scales(f){const W=cm(f.vals.W),H=cm(f.vals.H);const sx=W>0?W/f.w:(H>0?H/f.h:1),sy=H>0?H/f.h:sx;return{sx,sy}}
-function geo(f){
- const{sx,sy}=scales(f),W=f.w*sx,H=f.h*sy;let R=f.rh*sy;const Rv=cm(f.vals.R);if(Rv>0&&f.shape!='rectangle')R=Rv;
- const rx=f.rx*sx;
- const outline=f.shape=='pignon'?[[0,0],[W,0],[W,H],[rx,R],[0,H]]:f.shape=='appentis'?[[0,0],[W,0],[W,R],[0,H]]:[[0,0],[W,0],[W,H],[0,H]];
- const ops=f.ops.map(o=>{const w=cm(f.vals['w:'+o.id]),h=cm(f.vals['h:'+o.id]);return{o,x:o.x*sx,y:o.y*sy,w:w>0?w:o.w*sx,h:h>0?h:o.h*sy}}).sort((a,b)=>a.x-b.x||b.y-a.y);
- const pts=f.pts.map(p=>({p,x:p.x*sx,y:p.y*sy})).sort((a,b)=>a.x-b.x);
- const ex=f.ex.map(e=>({e,x1:e.x1*sx,y1:e.y1*sy,x2:e.x2*sx,y2:e.y2*sy}));
- return{W,H,R,rx,outline,ops,pts,ex,sx,sy}}
-// liste ordonnée des cotes d'une face
-function dimsOf(f){
- const g=geo(f),L=[];
- L.push({k:'W',label:'Longueur façade',est:f.w,dir:'h',fa:[0,0],fb:[g.W,0],side:1,off:56});
- L.push({k:'H',label:f.shape=='appentis'?'Hauteur côté gauche':'Hauteur sous gouttière',est:f.h,dir:'v',fa:[0,0],fb:[0,g.H],side:-1,off:56});
- if(f.shape=='pignon')L.push({k:'R',label:'Hauteur au faîtage',est:f.rh,dir:'v',fa:[g.W,0],fb:[g.rx,g.R],side:1,off:56});
- if(f.shape=='appentis')L.push({k:'R',label:'Hauteur côté droit',est:f.rh,dir:'v',fa:[g.W,0],fb:[g.W,g.R],side:1,off:56});
- for(const q of g.ops){
-  L.push({k:'w:'+q.o.id,label:'Largeur '+q.o.label,est:q.o.w,dir:'h',fa:[q.x,q.y],fb:[q.x+q.w,q.y],side:1,off:16,small:1});
-  L.push({k:'h:'+q.o.id,label:'Hauteur '+q.o.label,est:q.o.h,dir:'v',fa:[q.x+q.w,q.y],fb:[q.x+q.w,q.y+q.h],side:1,off:16,small:1})}
- for(const q of g.ex){const hz=Math.abs(q.x2-q.x1)>=Math.abs(q.y2-q.y1);
-  L.push({k:'x:'+q.e.id,label:q.e.label,est:Math.hypot(q.e.x2-q.e.x1,q.e.y2-q.e.y1),dir:hz?'h':'v',fa:[q.x1,q.y1],fb:[q.x2,q.y2],side:hz?-1:1,off:16,small:1})}
- for(const d of L)d.v=f.vals[d.k]||'';
+const lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+const cen=f=>[(f.bl[0]+f.br[0]+f.tr[0]+f.tl[0])/4,(f.bl[1]+f.br[1]+f.tr[1]+f.tl[1])/4];
+function facePoly(f){return f.shape=='pignon'&&f.apex?[f.bl,f.br,f.tr,f.apex,f.tl]:[f.bl,f.br,f.tr,f.tl]}
+// cotes d'une face : pieds A, B (coord. image 0-1000), point de référence pour décaler la flèche vers l'extérieur
+function dimsOfFace(f,fi){
+ const c=cen(f),L=[],mk=(k,label,a,b,ref,off)=>L.push({key:fi+'|'+k,k,fi,label,a,b,ref,off,v:f.vals[k]||''});
+ mk('W','Longueur façade',f.bl,f.br,c,38);
+ mk('H',f.shape=='appentis'?'Hauteur côté gauche':'Hauteur sous gouttière',f.bl,f.tl,c,38);
+ if(f.shape=='pignon'&&f.apex){const dx=f.tr[0]-f.tl[0],t=dx?Math.min(1,Math.max(0,(f.apex[0]-f.tl[0])/dx)):.5;mk('R','Hauteur au faîtage',lerp(f.bl,f.br,t),f.apex,null,0)}
+ if(f.shape=='appentis')mk('R','Hauteur côté droit',f.br,f.tr,c,38);
+ for(const o of f.ops.slice().sort((a,b)=>a.x1-b.x1||a.y1-b.y1)){const oc=[(o.x1+o.x2)/2,(o.y1+o.y2)/2];
+  mk('w:'+o.id,'Largeur '+o.label,[o.x1,o.y2],[o.x2,o.y2],oc,13);
+  mk('h:'+o.id,'Hauteur '+o.label,[o.x2,o.y1],[o.x2,o.y2],oc,13)}
+ for(const e of f.ex)mk('x:'+e.id,e.label,e.a,e.b,null,0);
  return L}
+function allDims(p){return p.faces.flatMap((f,i)=>dimsOfFace(f,i))}
 function surfaces(f){
- const g=geo(f),W=cm(f.vals.W),H=cm(f.vals.H);if(!(W>0&&H>0))return null;
- let a=0;g.outline.forEach((p,i)=>{const q=g.outline[(i+1)%g.outline.length];a+=p[0]*q[1]-q[0]*p[1]});a=Math.abs(a)/2;
- let approx=f.shape!='rectangle'&&!(cm(f.vals.R)>0),op=0;
- for(const q of g.ops){op+=q.w*q.h;if(!(cm(f.vals['w:'+q.o.id])>0&&cm(f.vals['h:'+q.o.id])>0))approx=true}
- return{brut:a/1e4,ouv:op/1e4,net:(a-op)/1e4,approx}}
+ const W=cm(f.vals.W),H=cm(f.vals.H),R=cm(f.vals.R);if(!(W>0&&H>0))return null;
+ let brut=W*H,approx=false;
+ if(f.shape=='pignon'){if(R>H)brut+=W*(R-H)/2;else approx=true}
+ if(f.shape=='appentis'){if(R>0)brut=W*(H+R)/2;else approx=true}
+ let ouv=0;for(const o of f.ops){const w=cm(f.vals['w:'+o.id]),h=cm(f.vals['h:'+o.id]);if(w>0&&h>0)ouv+=w*h;else approx=true}
+ return{brut:brut/1e4,ouv:ouv/1e4,net:(brut-ouv)/1e4,approx}}
 const m2=v=>v.toFixed(2).replace('.',',')+' m²';
 
-/* ================= dessin ================= */
-const C={line:'#1f2430',wall:'#f4efe4',win:'#d6e7f7',door:'#eadbc4',garage:'#e3e3e3',h:'#1565c0',v:'#2e7d32',sel:'#e53935',pt:'#e53935'};
-function layout(f,cw,ch,legendRows){
- const g=geo(f);let x0=0,x1=g.W,y1=Math.max(g.H,g.R);
- for(const p of g.pts){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y)}
- const L=110,Rm=f.shape=='rectangle'?60:110,T=40,B=96+legendRows*20,k=Math.max(.01,Math.min((cw-L-Rm)/(x1-x0||1),(ch-T-B)/(y1||1)));
- return{k,ox:L+((cw-L-Rm)-(x1-x0)*k)/2-x0*k,oy:T+((ch-T-B)-y1*k)/2+y1*k}}
+/* ================= dessin sur la photo ================= */
+const C={h:'#1e88e5',v:'#2ea043',o:'#a855f7',sel:'#ff1744',pt:'#ff3d1f',op:'#4fc3f7'};
 function arrow(c,x,y,ux,uy,z){c.beginPath();c.moveTo(x,y);c.lineTo(x-ux*z-uy*z*.38,y-uy*z+ux*z*.38);c.lineTo(x-ux*z+uy*z*.38,y-uy*z-ux*z*.38);c.closePath();c.fill()}
-function drawFace(c,f,V,o={}){ // V: {k,ox,oy} ; o: {sel,exp,edit,width}
- const g=geo(f),P=(x,y)=>[V.ox+x*V.k,V.oy-y*V.k],hits=[];
+function pill(c,x,y,txt,s,fill,stroke,lw){c.font=`800 ${15*s}px system-ui`;const w=Math.max(c.measureText(txt).width+12*s,30*s),h=23*s;
+ c.fillStyle=fill;c.strokeStyle=stroke;c.lineWidth=lw*s;c.beginPath();c.roundRect?c.roundRect(x-w/2,y-h/2,w,h,6*s):c.rect(x-w/2,y-h/2,w,h);c.fill();c.stroke();
+ c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,x,y+.5*s);return{x:x-w/2,y:y-h/2,w,h}}
+function label(c,x,y,txt,s,col,align='left'){c.font=`700 ${12*s}px system-ui`;c.textAlign=align;c.textBaseline='middle';c.lineJoin='round';c.lineWidth=3.5*s;c.strokeStyle='#000c';c.strokeText(txt,x,y);c.fillStyle=col;c.fillText(txt,x,y)}
+// V : {k (px par pixel image), ox, oy} ; o : {sel, edit, exp, s (échelle des traits)}
+function drawPlan(c,p,V,o={}){
+ const s=o.s||1,P=q=>[V.ox+q[0]/1000*p.w*V.k,V.oy+q[1]/1000*p.h*V.k],hits=[],placed=[];
  c.lineJoin='round';c.lineCap='round';
- // mur
- c.beginPath();g.outline.forEach((p,i)=>{const[s,t]=P(...p);i?c.lineTo(s,t):c.moveTo(s,t)});c.closePath();
- c.fillStyle=C.wall;c.fill();c.lineWidth=2.6;c.strokeStyle=C.line;c.stroke();
- // sol
- const[gx0,gy]=P(0,0),[gx1]=P(g.W,0);
- c.lineWidth=2;c.beginPath();c.moveTo(gx0-30,gy);c.lineTo(gx1+30,gy);c.stroke();
- c.lineWidth=1;c.beginPath();for(let x=gx0-28;x<gx1+24;x+=9){c.moveTo(x,gy+1);c.lineTo(x+7,gy+8)}c.stroke();
- // ouvertures
- for(const q of g.ops){const[a,b]=P(q.x,q.y+q.h),w=q.w*V.k,h=q.h*V.k,kd=q.o.kind;
-  c.fillStyle=kd=='porte'?C.door:kd=='garage'?C.garage:C.win;c.fillRect(a,b,w,h);
-  c.lineWidth=1.6;c.strokeStyle=C.line;c.strokeRect(a,b,w,h);
-  const i=Math.min(4,w/8,h/8);c.lineWidth=.8;c.strokeStyle='#5b6370';c.strokeRect(a+i,b+i,w-2*i,h-2*i);
-  if(kd=='garage'){c.beginPath();for(let y=b+h/6;y<b+h-2;y+=h/6){c.moveTo(a+i,y);c.lineTo(a+w-i,y)}c.stroke()}
-  else if(kd=='porte'){c.fillStyle=C.line;c.beginPath();c.arc(a+w*.82,b+h*.52,Math.max(1.5,w*.03),0,7);c.fill()}
-  else if(w>34&&(kd=='fenetre'||kd=='porte_fenetre'||kd=='baie')){c.beginPath();c.moveTo(a+w/2,b+i);c.lineTo(a+w/2,b+h-i);c.stroke()}
-  if(h>26&&w>30){c.font='600 11px system-ui';c.fillStyle='#333';c.textAlign='center';c.textBaseline='top';
-   let t=q.o.label;while(t.length>3&&c.measureText(t).width>w-6)t=t.slice(0,-2)+'…';c.fillText(t,a+w/2,b+i+3)}
-  if(o.edit){c.save();c.setLineDash([5,4]);c.strokeStyle='#e53935';c.lineWidth=2;c.strokeRect(a-3,b-3,w+6,h+6);c.restore()}
-  hits.push({type:'op',it:q.o,x:a,y:b,w,h})}
- // points singuliers
- g.pts.forEach((q,i)=>{const[x,y]=P(q.x,q.y);c.lineWidth=2.2;c.strokeStyle=C.pt;c.fillStyle='#fff';c.beginPath();c.arc(x,y,11,0,7);c.fill();c.stroke();
-  c.fillStyle=C.pt;c.font='800 12px system-ui';c.textAlign='center';c.textBaseline='middle';c.fillText(String(i+1),x,y+.5);
-  hits.push({type:'pt',it:q.p,x:x-14,y:y-14,w:28,h:28})});
- // cotes
- for(const d of dimsOf(f)){
-  const A=P(...d.fa),B=P(...d.fb),on=o.sel==d.k,col=on?C.sel:d.dir=='h'?C.h:C.v;let a,b;
-  if(d.dir=='h'){const y=d.side>0?Math.max(A[1],B[1])+d.off:Math.min(A[1],B[1])-d.off;a=[A[0],y];b=[B[0],y]}
-  else{const x=d.side>0?Math.max(A[0],B[0])+d.off:Math.min(A[0],B[0])-d.off;a=[x,A[1]];b=[x,B[1]]}
-  c.strokeStyle=c.fillStyle=col;c.lineWidth=d.small?.8:1;
-  c.beginPath();for(const[Fp,Q]of[[A,a],[B,b]]){const dx=Q[0]-Fp[0],dy=Q[1]-Fp[1],L=Math.hypot(dx,dy);if(L<2)continue;c.moveTo(Fp[0]+dx/L*3,Fp[1]+dy/L*3);c.lineTo(Q[0]+dx/L*5,Q[1]+dy/L*5)}c.stroke();
-  const L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<3)continue;const ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L;
-  c.lineWidth=on?2.6:d.small?1.3:1.6;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();
-  const z=Math.min(d.small?7:9,L/3);arrow(c,a[0],a[1],-ux,-uy,z);arrow(c,b[0],b[1],ux,uy,z);
-  const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,txt=d.v||(o.exp?'':'?');if(!txt)continue;
-  c.font=(d.small?'700 13px':'800 16px')+' system-ui';const tw=Math.max(c.measureText(txt).width+12,d.small?26:34),th=d.small?19:24;
-  c.fillStyle=d.v?'#fff':'#fff59d';c.strokeStyle=col;c.lineWidth=on?2.4:1;
-  c.beginPath();c.roundRect?c.roundRect(mx-tw/2,my-th/2,tw,th,6):c.rect(mx-tw/2,my-th/2,tw,th);c.fill();c.stroke();
-  c.fillStyle='#111';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,mx,my+.5);
-  hits.push({type:'dim',k:d.k,x:mx-tw/2-6,y:my-th/2-6,w:tw+12,h:th+12})}
- // légende des points
- if(g.pts.length){c.font='600 13px system-ui';c.textAlign='left';c.textBaseline='middle';
-  const x00=Math.max(10,gx0-30),lim=o.width||600;let x=x00,y=gy+86;
-  g.pts.forEach((q,i)=>{const t=(i+1)+'. '+q.p.label,w=c.measureText(t).width+26;if(x+w>lim-10&&x>x00){x=x00;y+=20}
-   c.fillStyle=C.pt;c.beginPath();c.arc(x+6,y,6,0,7);c.fill();c.fillStyle='#333';c.fillText(t,x+16,y);x+=w})}
+ p.faces.forEach((f,fi)=>{
+  // contour de la face (discret)
+  c.beginPath();facePoly(f).forEach((q,i)=>{const[x,y]=P(q);i?c.lineTo(x,y):c.moveTo(x,y)});c.closePath();
+  c.lineWidth=2*s;c.strokeStyle='#ffffffb0';c.setLineDash([7*s,5*s]);c.stroke();c.setLineDash([]);
+  if(o.edit){for(const[k,q]of[['bl',f.bl],['br',f.br],['tr',f.tr],['tl',f.tl],...(f.apex?[['apex',f.apex]]:[])])handle(c,P(q),s,'#ffeb3b',hits,{t:'v',f,k})
+   const[nx,ny]=P(cen(f));label(c,nx,ny,f.name,s*1.2,'#ffeb3b','center')}
+  // ouvertures
+  for(const op of f.ops){const[a,b]=P([op.x1,op.y1]),[x2,y2]=P([op.x2,op.y2]);
+   c.lineWidth=2*s;c.strokeStyle=C.op;c.strokeRect(a,b,x2-a,y2-b);
+   if(o.edit){handle(c,[a,b],s,C.op,hits,{t:'o1',f,it:op});handle(c,[x2,y2],s,C.op,hits,{t:'o2',f,it:op});label(c,a+3*s,b+10*s,op.label,s,'#bfe9ff')}
+   hits.push({t:'op',f,it:op,x:a,y:b,w:x2-a,h:y2-b,low:1})}
+  // extra : poignées
+  if(o.edit)for(const e of f.ex){handle(c,P(e.a),s,C.o,hits,{t:'ea',f,it:e});handle(c,P(e.b),s,C.o,hits,{t:'eb',f,it:e})}
+ });
+ // points singuliers numérotés
+ let n=0;
+ p.faces.forEach(f=>f.pts.forEach(q=>{n++;const[x,y]=P([q.x,q.y]),r=12*s;
+  c.lineWidth=2.6*s;c.strokeStyle=C.pt;c.fillStyle='#fff';c.beginPath();c.arc(x,y,r,0,7);c.fill();c.stroke();
+  c.fillStyle=C.pt;c.font=`900 ${12*s}px system-ui`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(n),x,y+.5);
+  label(c,x+r+4*s,y,q.label,s,'#ffd2c7');
+  hits.push({t:'pt',f,it:q,x:x-r-4,y:y-r-4,w:2*r+8,h:2*r+8,pt:1})}));
+ // flèches de cotes
+ for(const d of allDims(p)){
+  const A=P(d.a),B=P(d.b),dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy);if(L<4)continue;
+  const ux=dx/L,uy=dy/L;let nx=-uy,ny=ux;
+  if(d.ref){const R=P(d.ref),mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2;if((mx-R[0])*nx+(my-R[1])*ny<0){nx=-nx;ny=-ny}}
+  const off=d.off*s,[ix0,iy0]=P([0,0]),[ix1,iy1]=P([1000,1000]),out=q=>q[0]<ix0+4*s||q[0]>ix1-4*s||q[1]<iy0+4*s||q[1]>iy1-4*s;
+  if(off&&(out([A[0]+nx*(off+14*s),A[1]+ny*(off+14*s)])||out([B[0]+nx*(off+14*s),B[1]+ny*(off+14*s)]))){nx=-nx;ny=-ny} // reste dans la photo
+  const a=[A[0]+nx*off,A[1]+ny*off],b=[B[0]+nx*off,B[1]+ny*off];
+  const ang=Math.abs(Math.atan2(dy,dx)*180/Math.PI)%180,on=o.sel==d.key,col=on?C.sel:ang<30||ang>150?C.h:(ang>60&&ang<120?C.v:C.o);
+  c.strokeStyle=c.fillStyle=col;
+  if(off){c.lineWidth=1.2*s;c.beginPath();c.moveTo(A[0]+nx*3*s,A[1]+ny*3*s);c.lineTo(a[0]+nx*5*s,a[1]+ny*5*s);c.moveTo(B[0]+nx*3*s,B[1]+ny*3*s);c.lineTo(b[0]+nx*5*s,b[1]+ny*5*s);c.stroke()}
+  // liseré sombre pour la lisibilité sur la photo
+  c.lineWidth=(on?5.5:4)*s;c.strokeStyle='#0008';c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
+  c.lineWidth=(on?3.2:2)*s;c.strokeStyle=col;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
+  const z=Math.min(11*s,L/3);arrow(c,a[0],a[1],-ux,-uy,z);arrow(c,b[0],b[1],ux,uy,z);
+  const txt=d.v||(o.exp?'':'?');if(!txt)continue;
+  // l'étiquette glisse le long de la flèche pour ne pas recouvrir une autre étiquette
+  const ps=s*(d.off==13?.85:1);c.font=`800 ${15*ps}px system-ui`;const pw=Math.max(c.measureText(txt).width+12*ps,30*ps),ph=23*ps;
+  let t=.5;for(const tt of[.5,.3,.7,.18,.82,.4,.6]){const mx=a[0]+(b[0]-a[0])*tt,my=a[1]+(b[1]-a[1])*tt;
+   if(!placed.some(r=>Math.abs(r[0]-mx)<(r[2]+pw)/2+2&&Math.abs(r[1]-my)<(r[3]+ph)/2+2)){t=tt;break}}
+  const px=a[0]+(b[0]-a[0])*t,py=a[1]+(b[1]-a[1])*t;placed.push([px,py,pw,ph]);
+  const bb=pill(c,px,py,txt,ps,d.v?'#fff':'#fff59d',col,on?3:1.2);
+  hits.push({t:'dim',key:d.key,x:bb.x-6,y:bb.y-6,w:bb.w+12,h:bb.h+12})}
  return hits}
+function handle(c,[x,y],s,col,hits,ref){c.fillStyle='#fff';c.strokeStyle=col;c.lineWidth=3*s;c.beginPath();c.arc(x,y,8*s,0,7);c.fill();c.stroke();
+ hits.push({...ref,x:x-16,y:y-16,w:32,h:32,handle:1})}
 
-/* ================= écran plan ================= */
+/* ================= écran métré ================= */
 const cv=$('#cv'),cx=cv.getContext('2d');
-let V=null,hits=[],sel=null,editing=false,dpr=1;
-const F=()=>plan&&plan.faces[fi];
-function openPlan(p){plan=p;fi=0;sel=null;editing=false;$('#home').hidden=true;$('#planv').hidden=false;
- $('#photoView img').src=p.url;$('#photoView').hidden=true;resize();const d=dimsOf(F()).find(x=>!x.v);select(d?d.k:'W')}
-function legendRows(f){return Math.ceil(f.pts.length/4)}
+let V=null,hits=[],sel=null,editing=false,dpr=1,img=null;
+async function openPlan(p){plan=p;editing=false;banner(null);$('#home').hidden=true;$('#planv').hidden=false;
+ img=await createImageBitmap(p.blob);resize();const d=allDims(p).find(x=>!x.v)||allDims(p)[0];sel=d&&d.key;render()}
+function fit(){const r=cv.getBoundingClientRect(),k=Math.min(r.width/plan.w,r.height/plan.h);V={k,ox:(r.width-plan.w*k)/2,oy:(r.height-plan.h*k)/2}}
 function render(){
- if(!plan)return;const f=F();
- $('#pname').textContent=plan.name;
- $('#tabs').innerHTML=plan.faces.length>1?plan.faces.map((x,i)=>`<button class="${i==fi?'on':''}" data-f="${i}">${esc(x.name)}</button>`).join(''):'';
- $('#bEdit').classList.toggle('on',editing);$('#editBar').hidden=!editing;
- const r=cv.getBoundingClientRect();if(!V)V=layout(f,r.width,r.height,legendRows(f));
- cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle='#fff';cx.fillRect(0,0,r.width,r.height);
- hits=drawFace(cx,f,V,{sel,edit:editing,width:r.width});
- panel();
-}
-function resize(){dpr=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();cv.width=Math.max(1,Math.round(r.width*dpr));cv.height=Math.max(1,Math.round(r.height*dpr));V=null;if(plan)render()}
+ if(!plan||!img)return;
+ $('#pname').textContent=plan.name;$('#bEdit').classList.toggle('on',editing);$('#editBar').hidden=!editing;
+ const r=cv.getBoundingClientRect();if(!V)fit();
+ cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle='#15181d';cx.fillRect(0,0,r.width,r.height);
+ cx.drawImage(img,V.ox,V.oy,plan.w*V.k,plan.h*V.k);
+ hits=drawPlan(cx,plan,V,{sel,edit:editing});
+ panel()}
+function resize(){dpr=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();cv.width=Math.max(1,Math.round(r.width*dpr));cv.height=Math.max(1,Math.round(r.height*dpr));V=null;render()}
 new ResizeObserver(()=>{if(plan)resize()}).observe($('#stage'));
-$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;stopDict();fi=+b.dataset.f;V=null;const d=dimsOf(F()).find(x=>!x.v);sel=d?d.k:'W';render()};
-$('#back').onclick=()=>showHome();
+$('#back').onclick=()=>{if(abortC&&busy)abortC.abort();showHome()};
 $('#pname').onclick=()=>{const n=prompt('Nom du métré',plan.name);if(n&&n.trim()){plan.name=n.trim();save();render()}};
-$('#bPhoto').onclick=()=>$('#photoView').hidden=false;$('#pvClose').onclick=()=>$('#photoView').hidden=true;
 
 /* ---- saisie ---- */
-function curDim(){return dimsOf(F()).find(d=>d.k==sel)}
-function select(k){sel=k;render()}
+function curDim(){return allDims(plan).find(d=>d.key==sel)}
 function panel(){
- const f=F(),ds=dimsOf(f),i=ds.findIndex(x=>x.k==sel),d=ds[i];
- $('#dPos').textContent=d?`Cote ${i+1} / ${ds.length}`+(plan.faces.length>1?` · ${f.name} (face ${fi+1}/${plan.faces.length})`:''):'';
- $('#dLab').textContent=d?d.label:'Touchez une flèche';
+ const ds=allDims(plan),i=ds.findIndex(x=>x.key==sel),d=ds[i],f=d&&plan.faces[d.fi];
+ const dis=busy||!ds.length;for(const b of document.querySelectorAll('#keys button'))b.disabled=dis;
+ $('#dPos').textContent=d?`Cote ${i+1} / ${ds.length}`+(plan.faces.length>1?` · ${f.name}`:''):'';
+ $('#dLab').textContent=busy?'Analyse en cours…':d?d.label:ds.length?'Touchez une étiquette sur la photo':'Aucune cote pour le moment';
  $('#dTxt').textContent=d&&d.v?d.v:'—';
- $('#dHint').textContent=d&&!d.v?'≈ '+Math.round(d.est)+' d’après la photo':'';
- const s=surfaces(f),left=ds.filter(x=>!x.v).length;
- $('#sum').innerHTML=(left?`<div>${left} cote(s) à saisir sur cette face</div>`:'<div><b>✓ Toutes les cotes de cette face sont saisies</b></div>')+
-  (s?`<div>Surface brute : <b>${s.approx?'≈ ':''}${m2(s.brut)}</b></div><div>Ouvertures : ${s.approx?'≈ ':''}${m2(s.ouv)}</div><div>Surface nette : <b>${s.approx?'≈ ':''}${m2(s.net)}</b></div>`:'<div style="color:var(--mu)">Les surfaces se calculent dès que longueur et hauteur sont saisies (en cm, ou en m avec une virgule).</div>');
-}
-function setVal(v){const f=F();if(!sel)return;if(v)f.vals[sel]=v;else delete f.vals[sel];
- if(sel=='W'||sel=='H'||sel=='R')V=null; // le plan se remet à l'échelle
- save();render()}
-function step(k){const ds=dimsOf(F());let i=ds.findIndex(d=>d.k==sel)+k;
- if(i>=ds.length){if(fi<plan.faces.length-1){fi++;V=null;toast('Face suivante : '+F().name);const n=dimsOf(F());sel=(n.find(x=>!x.v)||n[0]).k;render();if(dict)listen();return}
-  stopDict();toast(plan.faces.flatMap(dimsOf).every(d=>d.v)?'✓ Toutes les cotes sont saisies. Touchez ⇪ Partager.':'Fin de la liste');return}
- if(i<0){if(fi>0){fi--;V=null;const n=dimsOf(F());sel=n[n.length-1].k;render()}return}
- sel=ds[i].k;render();if(dict)listen()}
-$('#keys').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.k,d=curDim();
+ let html='';const left=ds.filter(x=>!x.v).length;
+ if(ds.length)html+=left?`<div>${left} cote(s) à saisir</div>`:'<div><b>✓ Toutes les cotes sont saisies</b></div>';
+ let tb=0,to=0,tn=0,any=false,ap=false;
+ plan.faces.forEach(f=>{const s=surfaces(f);if(!s)return;any=true;ap=ap||s.approx;tb+=s.brut;to+=s.ouv;tn+=s.net;
+  html+=`<div>${esc(f.name)} : brute ${s.approx?'≈ ':''}${m2(s.brut)} · nette <b>${s.approx?'≈ ':''}${m2(s.net)}</b></div>`});
+ if(any&&plan.faces.length>1)html+=`<div>Total net : <b>${ap?'≈ ':''}${m2(tn)}</b></div>`;
+ if(!any&&ds.length)html+='<div style="color:var(--mu)">Surfaces calculées dès que longueur et hauteur sont saisies (cm, ou m avec une virgule).</div>';
+ $('#sum').innerHTML=html;$('#sum').hidden=!html}
+function setVal(v){const d=curDim();if(!d)return;const f=plan.faces[d.fi];if(v)f.vals[d.k]=v;else delete f.vals[d.k];save();render()}
+function step(k){const ds=allDims(plan);if(!ds.length)return;let i=ds.findIndex(d=>d.key==sel)+k;
+ if(i>=ds.length){stopDict();toast(ds.every(d=>d.v)?'✓ Toutes les cotes sont saisies. Touchez ⇪ Partager.':'Fin de la liste');return}
+ if(i<0)return;sel=ds[i].key;render();if(dict)listen()}
+$('#keys').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const k=b.dataset.k,d=curDim();
  if(k=='next')return step(1);if(k=='prev')return step(-1);if(k=='mic')return toggleDict();
  if(!d)return;let v=d.v||'';
  if(k=='del')v=v.slice(0,-1);else{const ch=b.textContent;if(ch==','&&(v.includes(',')||!v))return;if(v.length>=7)return;v+=ch}
  setVal(v)};
-document.addEventListener('keydown',e=>{if(!plan||$('#planv').hidden||document.querySelector('dialog[open]'))return;const d=curDim();
+document.addEventListener('keydown',e=>{if(!plan||$('#planv').hidden||busy||document.querySelector('dialog[open]'))return;const d=curDim();
  if(/^[0-9]$/.test(e.key)&&d){setVal((d.v||'')+e.key);e.preventDefault()}
  else if((e.key==','||e.key=='.')&&d&&d.v&&!d.v.includes(',')){setVal(d.v+',');e.preventDefault()}
  else if(e.key=='Backspace'&&d){setVal((d.v||'').slice(0,-1));e.preventDefault()}
@@ -496,67 +452,80 @@ function stopDict(){dict=false;$('#mic').classList.remove('rec');try{rec&&rec.ab
 
 /* ---- toucher : sélection, zoom, déplacement ---- */
 const ptr=new Map();let pinch=null,down=null,drag=null;
-function hitAt(x,y){const inside=h=>x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h,hs=hits.filter(inside);
- if(editing){const nd=hs.filter(h=>h.type!='dim');if(nd.length)return nd.find(h=>h.type=='pt')||nd[nd.length-1]}
- return hs.find(h=>h.type=='dim')||null}
+function hitAt(x,y){const hs=hits.filter(h=>x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h);
+ if(editing){const hd=hs.filter(h=>h.handle);if(hd.length)return hd[hd.length-1];const pt=hs.find(h=>h.pt);if(pt)return pt}
+ return hs.find(h=>h.t=='dim')||(editing&&hs.find(h=>h.t=='op'))||null}
+const toN=(dx,dy)=>[dx/V.k/plan.w*1000,dy/V.k/plan.h*1000];
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);
  if(ptr.size==2){const[a,b]=[...ptr.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),m:[(a[0]+b[0])/2,(a[1]+b[1])/2],V:{...V}};drag=null;down=null;return}
- const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,h=hitAt(x,y);
+ const r=cv.getBoundingClientRect(),h=hitAt(e.clientX-r.left,e.clientY-r.top);
  down={x:e.clientX,y:e.clientY,moved:false,h};
- drag=editing&&h&&(h.type=='op'||h.type=='pt')?{it:h.it,o:[h.it.x,h.it.y]}:{pan:{...V}}});
+ if(editing&&h&&(h.handle||h.pt)){const snap=JSON.stringify(h.f);drag={h,snap}}else drag={pan:{...V}}});
 cv.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,[e.clientX,e.clientY]);
  if(pinch&&ptr.size>=2){const[a,b]=[...ptr.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),r=cv.getBoundingClientRect(),m=[(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top],pm=[pinch.m[0]-r.left,pinch.m[1]-r.top];
-  const k=Math.min(pinch.V.k*12,Math.max(pinch.V.k/4,pinch.V.k*d/pinch.d)),px=(pm[0]-pinch.V.ox)/pinch.V.k,py=(pinch.V.oy-pm[1])/pinch.V.k;
-  V={k,ox:m[0]-px*k,oy:m[1]+py*k};render();return}
+  const k=Math.min(pinch.V.k*15,Math.max(pinch.V.k/3,pinch.V.k*d/pinch.d)),ix=(pm[0]-pinch.V.ox)/pinch.V.k,iy=(pm[1]-pinch.V.oy)/pinch.V.k;
+  V={k,ox:m[0]-ix*k,oy:m[1]-iy*k};render();return}
  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>7)down.moved=true;if(!down.moved||!drag)return;
  if(drag.pan){V={k:drag.pan.k,ox:drag.pan.ox+dx,oy:drag.pan.oy+dy};render();return}
- const{sx,sy}=scales(F());drag.it.x=drag.o[0]+dx/V.k/sx;drag.it.y=Math.max(0,drag.o[1]-dy/V.k/sy);render()});
+ const r=cv.getBoundingClientRect(),q=[cl((e.clientX-r.left-V.ox)/V.k/plan.w*1000),cl((e.clientY-r.top-V.oy)/V.k/plan.h*1000)],h=drag.h;
+ if(h.t=='v')h.f[h.k]=q;
+ else if(h.t=='o1'){h.it.x1=Math.min(q[0],h.it.x2-2);h.it.y1=Math.min(q[1],h.it.y2-2)}
+ else if(h.t=='o2'){h.it.x2=Math.max(q[0],h.it.x1+2);h.it.y2=Math.max(q[1],h.it.y1+2)}
+ else if(h.t=='ea')h.it.a=q;else if(h.t=='eb')h.it.b=q;
+ else if(h.t=='pt'){h.it.x=q[0];h.it.y=q[1]}
+ render()});
 function up(e){if(!ptr.has(e.pointerId))return;ptr.delete(e.pointerId);if(pinch){if(ptr.size<2)pinch=null;return}
  const d=down;down=null;const dr=drag;drag=null;if(!d)return;
- if(d.moved){if(dr&&dr.it)save();return}
+ if(d.moved){if(dr&&dr.h)save();return}
  const h=d.h;if(!h)return;
- if(h.type=='dim'){select(h.k);return}
- if(editing&&(h.type=='op'||h.type=='pt')){const f=F(),list=h.type=='op'?f.ops:f.pts;
-  const n=prompt('Nom (laisser vide pour SUPPRIMER)',h.it.label);if(n==null)return;
-  if(!n.trim()){list.splice(list.indexOf(h.it),1);if(h.type=='op'){delete f.vals['w:'+h.it.id];delete f.vals['h:'+h.it.id]}}else h.it.label=n.trim();save();render()}}
+ if(h.t=='dim'){sel=h.key;render();return}
+ if(editing&&(h.t=='op'||h.t=='pt'||h.t=='o1'||h.t=='o2')){const f=h.f,it=h.it,isOp=h.t!='pt',list=isOp?f.ops:f.pts;
+  const n=prompt('Nom (laisser vide pour SUPPRIMER)',it.label);if(n==null)return;
+  if(!n.trim()){list.splice(list.indexOf(it),1);if(isOp){delete f.vals['w:'+it.id];delete f.vals['h:'+it.id]}}else it.label=n.trim();save();render()}}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,k=V.k*Math.exp(-e.deltaY*.0015);
- const px=(mx-V.ox)/V.k,py=(V.oy-my)/V.k;V={k,ox:mx-px*k,oy:my+py*k};render()},{passive:false});
+ const ix=(mx-V.ox)/V.k,iy=(my-V.oy)/V.k;V={k,ox:mx-ix*k,oy:my-iy*k};render()},{passive:false});
 cv.addEventListener('dblclick',()=>{V=null;render()});
 
 /* ---- mode modifier ---- */
 function editMode(on){editing=on;stopDict();render()}
+const curFace=()=>{const d=curDim();return plan.faces[d?d.fi:0]};
 $('#bEdit').onclick=()=>editMode(!editing);$('#bEditOk').onclick=()=>editMode(false);
-$('#editBar').onclick=e=>{const b=e.target.closest('[data-add]');if(!b)return;const f=F(),t=b.dataset.add;
- if(t=='point'){const n=prompt('Point singulier (ex. VMC, Descente EP, Coffret EDF…)');if(!n)return;f.pts.push({id:uid(),label:n.trim(),x:f.w/2,y:Math.max(f.h,f.rh)*.6})}
+$('#editBar').onclick=e=>{const b=e.target.closest('[data-add]');if(!b)return;const t=b.dataset.add;
+ if(!plan.faces.length)plan.faces.push(defaultFace(1));const f=curFace(),[cx0,cy0]=cen(f);
+ if(t=='point'){const n=prompt('Point singulier (ex. VMC, Descente EP, Coffret EDF…)');if(!n)return;f.pts.push({id:uid(),label:n.trim(),x:cx0,y:cy0})}
+ else if(t=='cote'){const n=prompt('Nom de la cote (ex. Soubassement, Débord de toit…)');if(!n)return;const e2={id:uid(),label:n.trim(),a:[cx0-60,cy0],b:[cx0+60,cy0]};f.ex.push(e2);sel=f&&(plan.faces.indexOf(f)+'|x:'+e2.id)}
  else{const nb=f.ops.filter(o=>o.kind==t).length+1,isD=t=='porte';
-  f.ops.push({id:uid(),label:(isD?'Porte ':'Fenêtre ')+nb,kind:t,x:f.w/2-(isD?45:60),y:isD?0:Math.min(100,f.h*.3),w:isD?90:120,h:isD?215:Math.min(130,f.h*.4)})}
- save();render();toast('Glissez-le à sa place')};
-$('#bShape').onclick=()=>{const f=F(),order=['rectangle','pignon','appentis'];f.shape=order[(order.indexOf(f.shape)+1)%3];
- if(f.shape=='pignon'){if(f.rh<=f.h+20)f.rh=f.h+Math.min(f.w*.45,400);f.rx=f.w/2}if(f.shape=='appentis'&&f.rh>=f.h)f.rh=f.h*.75;if(f.shape=='rectangle')delete f.vals.R;
- V=null;save();render();toast('Forme : '+f.shape)};
-$('#bAddFace').onclick=()=>{plan.faces.push(defaultFace(plan.faces.length+1));fi=plan.faces.length-1;V=null;save();render()};
-$('#bDelFace').onclick=()=>{if(plan.faces.length<2){toast('Il faut garder au moins une face');return}if(!confirm('Supprimer « '+F().name+' » ?'))return;plan.faces.splice(fi,1);fi=0;V=null;save();render()};
-$('#bRedo').onclick=()=>{if(!confirm('Refaire l’analyse de la photo ? Les cotes saisies seront perdues.'))return;editMode(false);analyse(plan)};
+  const o={id:uid(),label:(isD?'Porte ':'Fenêtre ')+nb,kind:t,x1:cx0-35,y1:cy0-(isD?90:45),x2:cx0+35,y2:cy0+(isD?90:45)};f.ops.push(o);sel=plan.faces.indexOf(f)+'|w:'+o.id}
+ save();render();toast('Glissez les poignées pour le placer')};
+$('#bShape').onclick=()=>{const f=curFace();if(!f)return;const order=['rectangle','pignon','appentis'];f.shape=order[(order.indexOf(f.shape)+1)%3];
+ if(f.shape=='pignon'&&!f.apex)f.apex=[(f.tl[0]+f.tr[0])/2,cl(Math.min(f.tl[1],f.tr[1])-(f.bl[1]-f.tl[1])*.6)];if(f.shape!='pignon')f.apex=null;if(f.shape=='rectangle')delete f.vals.R;
+ save();render();toast(f.name+' : '+f.shape)};
+$('#bAddFace').onclick=()=>{const n=plan.faces.length+1,f=defaultFace(n);const nm=prompt('Nom de la face','Face '+n);if(nm)f.name=nm.trim();plan.faces.push(f);sel=(plan.faces.length-1)+'|W';save();render()};
+$('#bDelFace').onclick=()=>{const f=curFace();if(!f)return;if(!confirm('Supprimer « '+f.name+' » et ses cotes ?'))return;plan.faces.splice(plan.faces.indexOf(f),1);const d=allDims(plan)[0];sel=d&&d.key;save();render()};
+$('#bRedo').onclick=()=>{if(plan.faces.length&&!confirm('Refaire l’analyse ? Les cotes saisies seront perdues.'))return;editMode(false);analyse(plan)};
 
-/* ================= partage / export ================= */
-async function renderFace(f,title){
- const W=1800,H=Math.round(W*.72),c=document.createElement('canvas');c.width=W*1.5;c.height=H*1.5;const g=c.getContext('2d');g.scale(1.5,1.5);
- g.fillStyle='#fff';g.fillRect(0,0,W,H);
- const head=70,V2=layout(f,W,H-head,legendRows(f));V2.oy+=head;
- drawFace(g,f,V2,{exp:true,width:W});
- g.fillStyle='#1f2430';g.font='800 28px system-ui';g.textAlign='left';g.textBaseline='top';g.fillText(title,30,24);
- const s=surfaces(f);if(s){g.font='600 18px system-ui';g.textAlign='right';g.fillText(`Surface brute ${s.approx?'≈ ':''}${m2(s.brut)} · ouvertures ${m2(s.ouv)} · nette ${s.approx?'≈ ':''}${m2(s.net)}`,W-30,30)}
- return new Promise(r=>c.toBlob(b=>r(new File([b],(title.replace(/[^\wÀ-ÿ\- ]+/g,'_'))+'.png',{type:'image/png'})),'image/png'))}
-function recap(p){return p.faces.map(f=>{const s=surfaces(f),g=geo(f);return[`== ${p.name} – ${f.name} ==`,...dimsOf(f).map(d=>`${d.label} : ${d.v||'—'}`),
- ...(g.pts.length?['Points singuliers :',...g.pts.map((q,i)=>`  ${i+1}. ${q.p.label}`)]:[]),
- ...(s?[`Surface brute ${s.approx?'≈ ':''}${m2(s.brut)} – ouvertures ${m2(s.ouv)} – nette ${s.approx?'≈ ':''}${m2(s.net)}`]:[])].join('\n')}).join('\n\n')}
+/* ================= partage ================= */
+async function exportImage(p){
+ const W=p.w,s=Math.max(1,W/900),lines=[],legend=[];let n=0;
+ p.faces.forEach(f=>{const sf=surfaces(f);if(sf)lines.push(`${f.name} : brute ${sf.approx?'≈ ':''}${m2(sf.brut)} · ouvertures ${m2(sf.ouv)} · nette ${sf.approx?'≈ ':''}${m2(sf.net)}`);f.pts.forEach(q=>legend.push(`${++n}. ${q.label}`))});
+ const band=Math.round((24+(lines.length+Math.ceil(legend.length/4))*22)*s)+(lines.length||legend.length?0:-Math.round(24*s));
+ const c=document.createElement('canvas');c.width=W;c.height=p.h+Math.max(0,band);const g=c.getContext('2d');
+ g.drawImage(img&&plan===p?img:await createImageBitmap(p.blob),0,0,p.w,p.h);
+ drawPlan(g,p,{k:1,ox:0,oy:0},{exp:true,s});
+ g.font=`800 ${18*s}px system-ui`;const tw=g.measureText(p.name).width;g.fillStyle='#000b';g.fillRect(8*s,8*s,tw+20*s,30*s);g.fillStyle='#fff';g.textAlign='left';g.textBaseline='middle';g.fillText(p.name,18*s,23*s);
+ if(band>0){g.fillStyle='#fff';g.fillRect(0,p.h,W,band);g.fillStyle='#1f2430';g.font=`600 ${14*s}px system-ui`;let y=p.h+20*s;
+  for(const l of lines){g.fillText(l,14*s,y);y+=22*s}
+  for(let i=0;i<legend.length;i+=4){g.fillText(legend.slice(i,i+4).join('    '),14*s,y);y+=22*s}}
+ return new Promise(r=>c.toBlob(b=>r(new File([b],p.name.replace(/[^\wÀ-ÿ\- ]+/g,'_')+'.jpg',{type:'image/jpeg'})),'image/jpeg',.9))}
+function recap(p){let n=0;return[`== ${p.name} ==`,...p.faces.flatMap((f,fi)=>{const s=surfaces(f);return[...(p.faces.length>1?['— '+f.name]:[]),...dimsOfFace(f,fi).map(d=>`${d.label} : ${d.v||'—'}`),
+ ...(f.pts.length?['Points singuliers :',...f.pts.map(q=>`  ${++n}. ${q.label}`)]:[]),
+ ...(s?[`Surface brute ${s.approx?'≈ ':''}${m2(s.brut)} – ouvertures ${m2(s.ouv)} – nette ${s.approx?'≈ ':''}${m2(s.net)}`]:[])]})].join('\n')}
 $('#bShare').onclick=async()=>{
- stopDict();const files=[];for(const f of plan.faces)files.push(await renderFace(f,plan.name+' – '+f.name));
- const text=recap(plan);
- if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:plan.name,text});return}catch(e){if(e.name=='AbortError')return}}
- for(const f of files){const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click();await new Promise(r=>setTimeout(r,300))}
- const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=plan.name+'.txt';a.click()};
+ stopDict();const file=await exportImage(plan),text=recap(plan);
+ if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:plan.name,text});return}catch(e){if(e.name=='AbortError')return}}
+ const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();
+ await sleep(300);const b=document.createElement('a');b.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));b.download=plan.name+'.txt';b.click()};
 
 /* ================= réglages : clé et modèle ================= */
 let afterSettings=null;
@@ -571,19 +540,18 @@ async function listModels(key){
 function fillModels(ms,cur){$('#kModels').innerHTML=ms.map(m=>`<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('');
  $('#kModel').value=cur||(ms[0]&&ms[0].id)||DEFAULT_MODEL}
 function openSettings(after){afterSettings=after||null;$('#kKey').value=settings.key||'';$('#kMsg').textContent='';fillModels(settings.models||[],settings.model);$('#dSet').showModal()}
-// vérifie la clé : AI Studio (liste des modèles), sinon Google Cloud / Vertex (petit essai)
 async function testKey(){const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');$('#kKey').value=key;
  if(!key){$('#kMsg').textContent='Collez votre clé.';return false}
  $('#kMsg').textContent='Vérification…';let e1='',e2='';
- {try{const ms=await listModels(key);settings.models=ms;settings.provider='studio';
-   const cur=$('#kModel').value.trim();fillModels(ms,cur&&ms.some(m=>m.id==cur)?cur:null);
-   $('#kMsg').textContent='✓ Clé Google AI Studio valide ('+ms.length+' modèles). Les « Flash » sont rapides et dans l’offre gratuite, les « Pro » plus précis.';return true}
-  catch(e){e1=e.message}}
+ try{const ms=await listModels(key);settings.models=ms;settings.provider='studio';
+  const cur=$('#kModel').value.trim();fillModels(ms,cur&&ms.some(m=>m.id==cur)?cur:null);
+  $('#kMsg').textContent='✓ Clé Google AI Studio valide ('+ms.length+' modèles).';return true}
+ catch(e){e1=e.message}
  try{const model=$('#kModel').value.trim()||DEFAULT_MODEL;
   await callGemini([{text:'Réponds juste OK.'}],undefined,{key,model,prov:'vertex',light:true});
   settings.provider='vertex';$('#kMsg').textContent='✓ Clé Google Cloud (Vertex AI) valide avec le modèle '+model+'.';return true}
  catch(e){e2=e.detail||e.message}
- $('#kMsg').textContent='✗ Google refuse cette clé.\nAI Studio : '+e1+'\nGoogle Cloud : '+e2+'\nVérifiez la clé (sans espace), ou enregistrez quand même pour voir l’erreur exacte lors d’une analyse.';return false}
+ $('#kMsg').textContent='✗ Google refuse cette clé.\nAI Studio : '+e1+'\nGoogle Cloud : '+e2;return false}
 $('#kTest').onclick=testKey;
 $('#kCancel').onclick=()=>{$('#dSet').close();afterSettings=null};
 $('#kOk').onclick=async()=>{const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');
