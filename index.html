@@ -65,7 +65,7 @@ button:active{filter:brightness(1.25)}
 #busy img{max-width:min(80vw,520px);max-height:45vh;border-radius:10px;opacity:.8}
 .spin{width:44px;height:44px;border:5px solid #fff3;border-top-color:var(--ac);border-radius:50%;animation:s 1s linear infinite}
 @keyframes s{to{transform:rotate(360deg)}}
-#busyErr{color:#ffb4a2;max-width:520px;line-height:1.4}
+#busyErr{color:#ffb4a2;max-width:620px;line-height:1.4;white-space:pre-wrap;user-select:text;-webkit-user-select:text;font-size:14px}
 
 dialog{background:var(--pn);color:var(--tx);border:0;border-radius:14px;padding:18px;width:min(560px,94vw);max-height:90dvh}
 dialog::backdrop{background:#000b}
@@ -75,7 +75,7 @@ dialog input,dialog select{width:100%;background:#1d2127;border:1px solid #5a627
 dialog p{color:var(--mu);font-size:14px;line-height:1.45;margin:6px 0}
 dialog a{color:var(--ac)}
 dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
-#kMsg{min-height:1.2em}
+#kMsg{min-height:1.2em;white-space:pre-wrap;user-select:text;-webkit-user-select:text}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000e;color:#fff;padding:10px 16px;border-radius:10px;font-size:15px;z-index:20;max-width:90vw;text-align:center;pointer-events:none}
 </style></head><body>
 
@@ -129,14 +129,14 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 </section>
 
 <div id="busy" hidden><img id="busyImg" alt=""><div class="spin" id="busySpin"></div><div id="busyT">Gemini dessine la façade…</div><div id="busyErr"></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button id="busyRetry" class="pri" hidden>Réessayer</button><button id="busyManual" hidden>Dessiner à la main</button><button id="busyCancel">Annuler</button></div></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button id="busyRetry" class="pri" hidden>Réessayer</button><button id="busyCopy" hidden>Copier le détail de l’erreur</button><button id="busySet" hidden>⚙ Clé / modèle</button><button id="busyManual" hidden>Dessiner à la main</button><button id="busyCancel">Annuler</button></div></div>
 
 <dialog id="dSet">
  <h2>Clé API Gemini</h2>
  <p>L’analyse des photos se fait avec l’IA Gemini de Google. Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> puis collez-la ici. Elle reste enregistrée sur cet appareil uniquement.</p>
  <p>Offre gratuite : nombre d’analyses limité par jour, et Google peut utiliser les photos envoyées pour améliorer ses services. Avec facturation activée, quelques centimes au plus par photo.</p>
  <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza…" autocomplete="off">
- <label for="kModel">Modèle</label><select id="kModel"></select>
+ <label for="kModel">Modèle (choisissez dans la liste ou tapez son nom exact, ex. gemini-2.5-flash)</label><input id="kModel" list="kModels" autocomplete="off" spellcheck="false"><datalist id="kModels"></datalist>
  <p id="kMsg"></p>
  <div class="act"><button id="kCancel">Annuler</button><button id="kTest">Tester la clé</button><button id="kOk" class="pri">Enregistrer</button></div>
 </dialog>
@@ -224,24 +224,55 @@ async function imgB64(blob){
  const bm=await createImageBitmap(blob),k=Math.min(1,1600/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
  c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
  return c.toDataURL('image/jpeg',.85).split(',')[1]}
+const STUDIO=m=>`${API}/models/${encodeURIComponent(m)}:generateContent`;
+const VERTEX=m=>`https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(m)}:generateContent`;
+const provider=()=>settings.provider||(/^AQ\./.test(settings.key||'')?'vertex':'studio');
+const JSON_HELP=`\n\nRéponds UNIQUEMENT avec un objet JSON (sans texte autour) de cette forme :
+{"faces":[{"name":"Pignon","shape":"pignon","width_cm":850,"height_cm":370,"ridge_height_cm":780,"ridge_x_cm":425,
+"openings":[{"label":"Fenêtre 1","kind":"fenetre","x_cm":120,"y_cm":100,"width_cm":120,"height_cm":130}],
+"points":[{"label":"Grille ventilation","x_cm":300,"y_cm":250}],
+"extra_dims":[{"label":"Soubassement","x1_cm":0,"y1_cm":0,"x2_cm":0,"y2_cm":60}]}]}
+kind ∈ fenetre, porte, porte_fenetre, garage, baie, soupirail, autre. shape ∈ rectangle, pignon, appentis.`;
+let lastErr='';
+class GemErr extends Error{constructor(msg,detail){super(msg);this.detail=detail}}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// envoie la requête ; essaie plusieurs variantes si Google refuse un réglage
+async function callGemini(parts,signal,{key=settings.key,model=settings.model||DEFAULT_MODEL,prov=provider(),light=false}={}){
+ const url=prov=='vertex'?VERTEX(model):STUDIO(model);
+ const variants=light?[{}]:[
+  {responseMimeType:'application/json',responseSchema:SCHEMA,maxOutputTokens:32768},
+  {responseMimeType:'application/json',maxOutputTokens:32768,_help:1},
+  {_help:1}];
+ let last=null;
+ for(const v of variants){
+  const gc={...v};delete gc._help;
+  const ps=v._help?parts.map(p=>p.text?{text:p.text+JSON_HELP}:p):parts;
+  for(let attempt=0;attempt<3;attempt++){
+   let r,data={};
+   try{r=await fetch(url,{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:ps}],...(Object.keys(gc).length?{generationConfig:gc}:{})})})}
+   catch(e){if(e.name=='AbortError')throw e;throw new GemErr('Pas de connexion à Gemini (Internet coupé, ou page ouverte d’une façon qui bloque les connexions).',String(e))}
+   try{data=await r.json()}catch(_){}
+   if(r.ok)return data;
+   const m=(data.error&&data.error.message)||('HTTP '+r.status),st=(data.error&&data.error.status)||'';
+   last={status:r.status,m,st,detail:`HTTP ${r.status} ${st} · modèle ${model} · ${prov=='vertex'?'Google Cloud':'AI Studio'} · ${m}`};
+   if(r.status>=500||(r.status==429&&attempt==0)){await sleep(2500*(attempt+1));continue}
+   break}
+  if(!last)continue;
+  if(/API key|API_KEY|UNAUTHENTICATED|PERMISSION_DENIED/i.test(last.m+last.st)||last.status==401||last.status==403)throw new GemErr('Clé refusée par Google : '+last.m,last.detail);
+  if(last.status==404)throw new GemErr('Modèle « '+model+' » introuvable avec cette clé. Corrigez le nom du modèle dans ⚙.',last.detail);
+  if(last.status==429)throw new GemErr('Quota Gemini dépassé : '+last.m,last.detail);
+  if(last.status!=400)throw new GemErr('Gemini : '+last.m,last.detail);
+  // 400 : on essaie la variante suivante (sans schéma, puis sans réglage)
+ }
+ throw new GemErr('Gemini : '+(last?last.m:'erreur inconnue'),last&&last.detail)}
 async function gemini(blob,signal){
- const model=settings.model||DEFAULT_MODEL;
- const body={contents:[{role:'user',parts:[{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}]}],
-  generationConfig:{responseMimeType:'application/json',responseSchema:SCHEMA,temperature:0.2}};
- let r;
- try{r=await fetch(`${API}/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':settings.key},body:JSON.stringify(body)})}
- catch(e){if(e.name=='AbortError')throw e;throw new Error('Pas de connexion Internet (ou Gemini injoignable).')}
- let data={};try{data=await r.json()}catch(_){}
- if(!r.ok){const m=(data.error&&data.error.message)||('erreur '+r.status);
-  if(r.status==400&&/API key/i.test(m))throw new Error('Clé API refusée. Vérifiez-la (⚙ Clé Gemini).');
-  if(r.status==429)throw new Error('Quota Gemini atteint (offre gratuite limitée). Réessayez plus tard ou choisissez un autre modèle dans ⚙.');
-  if(r.status==404)throw new Error('Modèle « '+model+' » introuvable. Choisissez-en un autre dans ⚙.');
-  throw new Error('Gemini : '+m)}
- if(data.promptFeedback&&data.promptFeedback.blockReason)throw new Error('Gemini a refusé la photo ('+data.promptFeedback.blockReason+').');
- const cand=(data.candidates||[])[0];if(!cand)throw new Error('Réponse vide de Gemini.');
+ const data=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal);
+ if(data.promptFeedback&&data.promptFeedback.blockReason)throw new GemErr('Gemini a refusé la photo ('+data.promptFeedback.blockReason+').',JSON.stringify(data.promptFeedback));
+ const cand=(data.candidates||[])[0];if(!cand)throw new GemErr('Réponse vide de Gemini.',JSON.stringify(data).slice(0,400));
  const txt=((cand.content&&cand.content.parts)||[]).filter(p=>!p.thought).map(p=>p.text||'').join('');
- if(!txt)throw new Error('Réponse vide de Gemini ('+(cand.finishReason||'?')+').');
- let out;try{out=JSON.parse(txt.trim().replace(/^```(?:json)?\s*|\s*```$/g,''))}catch(_){throw new Error(cand.finishReason=='MAX_TOKENS'?'Réponse coupée (trop d’éléments). Réessayez.':'Réponse illisible. Réessayez.')}
+ if(!txt)throw new GemErr('Réponse vide de Gemini ('+(cand.finishReason||'?')+').',JSON.stringify(cand).slice(0,400));
+ const a=txt.indexOf('{'),b=txt.lastIndexOf('}');
+ let out;try{out=JSON.parse(txt.slice(a,b+1))}catch(_){throw new GemErr(cand.finishReason=='MAX_TOKENS'?'Réponse coupée (trop d’éléments). Réessayez.':'Réponse illisible. Réessayez.',txt.slice(0,400))}
  return out}
 const numOr=(v,d)=>Number.isFinite(+v)&&v!==null&&v!==''?+v:d;
 function sanitize(out){
@@ -266,7 +297,7 @@ function defaultFace(n){return{id:uid(),name:'Face '+n,shape:'pignon',w:850,h:37
 async function analyse(p){
  lastPlan=p;
  $('#busy').hidden=false;$('#busyImg').src=p.url;$('#busySpin').hidden=false;$('#busyT').textContent='Gemini dessine le plan de la façade… (10 à 40 s)';
- $('#busyErr').textContent='';$('#busyRetry').hidden=$('#busyManual').hidden=true;
+ $('#busyErr').textContent='';$('#busyRetry').hidden=$('#busyManual').hidden=$('#busyCopy').hidden=$('#busySet').hidden=true;
  abortC=new AbortController();
  try{
   const faces=sanitize(await gemini(p.blob,abortC.signal));
@@ -277,10 +308,13 @@ async function analyse(p){
   const n=p.faces.flatMap(dimsOf).length;toast(`${p.faces.length} face(s) dessinée(s), ${n} cotes à saisir`);
  }catch(e){
   if(e.name=='AbortError'){$('#busy').hidden=true;return}
-  $('#busySpin').hidden=true;$('#busyT').textContent='L’analyse n’a pas abouti';$('#busyErr').textContent=e.message;
-  $('#busyRetry').hidden=$('#busyManual').hidden=false;
+  lastErr=(e.detail||e.message)+' · navigateur : '+navigator.userAgent+' · page : '+location.protocol;
+  $('#busySpin').hidden=true;$('#busyT').textContent='L’analyse n’a pas abouti';$('#busyErr').textContent=e.message+(e.detail&&e.detail!=e.message?'\n\nDétail : '+e.detail:'');
+  $('#busyRetry').hidden=$('#busyManual').hidden=$('#busyCopy').hidden=$('#busySet').hidden=false;
  }
 }
+$('#busyCopy').onclick=async()=>{try{await navigator.clipboard.writeText(lastErr);toast('Détail copié : collez-le dans le chat (il ne contient pas votre clé)')}catch(_){prompt('Copiez ce texte :',lastErr)}};
+$('#busySet').onclick=()=>{$('#busy').hidden=true;openSettings(()=>analyse(lastPlan))};
 $('#busyCancel').onclick=()=>{if(abortC)abortC.abort();$('#busy').hidden=true};
 $('#busyRetry').onclick=()=>{if(!settings.key){openSettings(()=>analyse(lastPlan));return}analyse(lastPlan)};
 $('#busyManual').onclick=()=>{const p=lastPlan;$('#busy').hidden=true;if(!p.faces.length)p.faces=[defaultFace(1)];if(!plans.includes(p))plans.push(p);save(p);openPlan(p);editMode(true)};
@@ -534,17 +568,27 @@ async function listModels(key){
  const ver=id=>{const m=id.match(/gemini-(\d+(?:\.\d+)?)/);return m?+m[1]:0};
  const score=m=>ver(m.id)*100+(/flash/.test(m.id)?20:0)+(/pro/.test(m.id)?10:0)-(/lite/.test(m.id)?15:0)-(/preview|exp/.test(m.id)?5:0)-(/latest/.test(m.id)?1:0);
  return ms.sort((a,b)=>score(b)-score(a))}
-function fillModels(ms,cur){$('#kModel').innerHTML=(ms.length?ms:[{id:DEFAULT_MODEL,label:DEFAULT_MODEL}]).map(m=>`<option value="${esc(m.id)}">${esc(m.label)} (${esc(m.id)})</option>`).join('');
- if(cur&&[...$('#kModel').options].some(o=>o.value==cur))$('#kModel').value=cur}
+function fillModels(ms,cur){$('#kModels').innerHTML=ms.map(m=>`<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('');
+ $('#kModel').value=cur||(ms[0]&&ms[0].id)||DEFAULT_MODEL}
 function openSettings(after){afterSettings=after||null;$('#kKey').value=settings.key||'';$('#kMsg').textContent='';fillModels(settings.models||[],settings.model);$('#dSet').showModal()}
-async function testKey(){const key=$('#kKey').value.trim();if(!key){$('#kMsg').textContent='Collez votre clé.';return false}
- $('#kMsg').textContent='Vérification…';
- try{const ms=await listModels(key);settings.models=ms;fillModels(ms,settings.key==key?settings.model:null);$('#kMsg').textContent='✓ Clé valide. Les modèles « Flash » sont rapides et compris dans l’offre gratuite ; les « Pro » sont plus précis mais plus limités.';return true}
- catch(e){$('#kMsg').textContent='✗ '+(/API key/i.test(e.message)?'Clé refusée par Google.':e.message);return false}}
+// vérifie la clé : AI Studio (liste des modèles), sinon Google Cloud / Vertex (petit essai)
+async function testKey(){const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');$('#kKey').value=key;
+ if(!key){$('#kMsg').textContent='Collez votre clé.';return false}
+ $('#kMsg').textContent='Vérification…';let e1='',e2='';
+ if(!/^AQ\./.test(key)){try{const ms=await listModels(key);settings.models=ms;settings.provider='studio';
+   const cur=$('#kModel').value.trim();fillModels(ms,cur&&ms.some(m=>m.id==cur)?cur:null);
+   $('#kMsg').textContent='✓ Clé Google AI Studio valide ('+ms.length+' modèles). Les « Flash » sont rapides et dans l’offre gratuite, les « Pro » plus précis.';return true}
+  catch(e){e1=e.message}}
+ try{const model=$('#kModel').value.trim()||DEFAULT_MODEL;
+  await callGemini([{text:'Réponds juste OK.'}],undefined,{key,model,prov:'vertex',light:true});
+  settings.provider='vertex';$('#kMsg').textContent='✓ Clé Google Cloud (Vertex AI) valide avec le modèle '+model+'.';return true}
+ catch(e){e2=e.detail||e.message}
+ $('#kMsg').textContent='✗ Google refuse cette clé.\nAI Studio : '+(e1||'non essayé')+'\nGoogle Cloud : '+e2+'\nVérifiez la clé (sans espace), ou enregistrez quand même pour voir l’erreur exacte lors d’une analyse.';return false}
 $('#kTest').onclick=testKey;
 $('#kCancel').onclick=()=>{$('#dSet').close();afterSettings=null};
-$('#kOk').onclick=async()=>{const key=$('#kKey').value.trim();if(key!==settings.key||!settings.models||!settings.models.length){if(!await testKey())return}
- settings.key=key;settings.model=$('#kModel').value;saveSettings();$('#dSet').close();if(!plan)showHome();
+$('#kOk').onclick=async()=>{const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');
+ if(key!==settings.key||!settings.provider){const ok=await testKey();if(!ok){if(!confirm('La vérification a échoué. Enregistrer quand même ?'))return;delete settings.provider}}
+ settings.key=key;settings.model=$('#kModel').value.trim()||DEFAULT_MODEL;saveSettings();$('#dSet').close();if(!plan)showHome();
  if(afterSettings){const f=afterSettings;afterSettings=null;f()}};
 
 /* ================= démarrage ================= */
