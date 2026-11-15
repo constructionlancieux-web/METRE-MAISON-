@@ -78,7 +78,7 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 
 <!-- ===== DOSSIERS ===== -->
 <section id="home" class="screen">
- <div class="bar"><h1>📐 Métré photo <small>version 7</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
+ <div class="bar"><h1>📐 Métré photo <small>version 8</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
  <div class="acts"><button id="hNew" class="big pri">＋ Nouveau dossier client</button></div>
  <p class="info" id="hInfo"></p>
  <div id="folders" class="grid"></div>
@@ -129,7 +129,7 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 </section>
 
 <dialog id="dSet">
- <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 7)</small></h2>
+ <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 8)</small></h2>
  <p>L’analyse des photos se fait avec l’IA Gemini de Google. Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> puis collez-la ici. Elle reste enregistrée sur cet appareil uniquement.</p>
  <p>Offre gratuite : nombre d’analyses limité par minute et par jour, et Google peut utiliser les photos envoyées pour améliorer ses services.</p>
  <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza… ou AQ.…" autocomplete="off">
@@ -208,6 +208,7 @@ $('#hSet').onclick=()=>openSettings();
 /* ---- un dossier ---- */
 function openFolder(f){folder=f;plan=null;stopDict();show('folder');renderFolder();for(const p of photosOf(f))if(p.st=='todo'&&!p.faces.length&&settings.key)enqueue(p)}
 function badge(p){
+ if(p.st=='run'&&p.wq>Date.now())return`<span class="badge">⏳ quota Google : ${Math.ceil((p.wq-Date.now())/1000)} s</span>`;
  if(p.st=='run')return`<span class="badge"><span class="mini"></span>${Math.round((Date.now()-p.t0)/1000)} s</span>`;
  if(p.st=='wait')return'<span class="badge">⏳ en attente</span>';
  if(p.st=='err')return'<span class="badge err">⚠ erreur</span>';
@@ -241,18 +242,18 @@ async function addPhotos(files){
  else toast(files.length>1?files.length+' photos ajoutées, analyse en cours':'Photo ajoutée, analyse en cours. Vous pouvez en prendre une autre.')}
 
 /* ================= analyses en parallèle ================= */
-const queue=[],running=new Set(),MAXC=3;
+const queue=[],running=new Set(),MAXC=2;
 function enqueue(p){if(p.st=='run'||p.st=='wait')return;p.st='wait';p.err=null;queue.push(p);refresh();pump()}
 function pump(){while(running.size<MAXC&&queue.length){const p=queue.shift();if(p.st=='wait')runAnalysis(p)}}
 async function runAnalysis(p){
  if(!settings.key){p.st='todo';refresh();return}
- running.add(p);p.st='run';p.t0=Date.now();p.ac=new AbortController();
+ running.add(p);p.st='run';p.t0=Date.now();p.wq=0;p.ac=new AbortController();
  const prevFaces=p.faces,prevVals=p.faces.map(f=>f.vals);p.faces=[];refresh();
  const model=settings.model||DEFAULT_MODEL;let info='';
  const apply=o=>{const fs=sanitize(o);fs.forEach((f,i)=>{const old=p.faces[i]||{};f.vals=old.vals||prevVals[i]||{}});p.faces=fs;
   if(plan===p){if(!sel||!allDims(p).some(d=>d.key==sel)){const d=allDims(p).find(x=>!x.v);sel=d&&d.key}render()}};
  try{
-  const out=await gemini(p.blob,p.ac.signal,o=>{if(p.st=='run')apply(o)},i=>info=i);
+  const out=await gemini(p.blob,p.ac.signal,o=>{if(p.st=='run')apply(o)},i=>{info=i;p.wq=0},ms=>{p.wq=Date.now()+ms;refresh()});
   apply(out);if(!p.faces.length)throw new GemErr('Aucune façade reconnue sur cette photo.','');
   p.st='done';p.done=true;save(p);
   if(plan===p)toast(`${allDims(p).length} cotes placées en ${Math.round((Date.now()-p.t0)/1000)} s (${model}, ${info})`,3500);
@@ -314,26 +315,43 @@ async function readStream(r,onText){
  else(await r.text()).split('\n').forEach(handle);
  return{text,finish,feedback}}
 // envoie la requête ; essaie des variantes plus simples si Google refuse un réglage
-async function callGemini(parts,signal,{key=settings.key,model=settings.model||DEFAULT_MODEL,prov=provider(),light=false,onText=null,onInfo=null}={}){
+// ---- limiteur : ne jamais dépasser le quota par minute de Google (5/min sur l'offre gratuite) ----
+const sent=[];
+async function quotaSlot(signal,onWait){
+ for(;;){const lim=settings.rpm||5,now=Date.now();while(sent.length&&now-sent[0]>61000)sent.shift();
+  if(sent.length<lim){sent.push(now);return now}
+  const ms=61000-(now-sent[0])+200;onWait&&onWait(ms);await waitAbortable(ms,signal)}}
+function waitAbortable(ms,signal){return new Promise((ok,ko)=>{const t=setTimeout(ok,ms);if(signal)signal.addEventListener('abort',()=>{clearTimeout(t);ko(new DOMException('annulé','AbortError'))},{once:true})})}
+function retryDelay(data,m){let s=NaN;for(const d of (data.error&&data.error.details)||[])if(d.retryDelay)s=parseFloat(d.retryDelay);
+ if(!(s>=0)){const x=m.match(/retry in ([\d.]+)\s*s/i);if(x)s=+x[1]}return s>=0?s:20}
+// envoie la requête ; mémorise le réglage accepté par le modèle pour ne pas gaspiller de requêtes
+async function callGemini(parts,signal,{key=settings.key,model=settings.model||DEFAULT_MODEL,prov=provider(),light=false,onText=null,onInfo=null,onWait=null}={}){
  const url=(prov=='vertex'?VERTEX(model):STUDIO(model)).replace(':generateContent',light?':generateContent':':streamGenerateContent?alt=sse');
  const base={responseMimeType:'application/json',responseSchema:SCHEMA,maxOutputTokens:12000};
  const variants=light?[{}]:[...thinkingOptions(model).map(t=>({...base,thinkingConfig:t})),base,{responseMimeType:'application/json',maxOutputTokens:12000,_help:1},{_help:1}];
+ const ok=settings.okVariant||(settings.okVariant={}),start=light?0:Math.min(ok[model]||0,variants.length-1);
  let last=null;
- for(const v of variants){
+ for(let vi=start;vi<variants.length;vi++){const v=variants[vi];
   const gc={...v};delete gc._help;
   const ps=v._help?parts.map(p=>p.text?{text:p.text+JSON_HELP}:p):parts;
+  let q429=0;
   for(let attempt=0;attempt<3;attempt++){
    let r,data={};
+   const slot=light?0:await quotaSlot(signal,onWait);
    try{r=await fetch(url,{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:ps}],...(Object.keys(gc).length?{generationConfig:gc}:{})})})}
    catch(e){if(e.name=='AbortError')throw e;throw new GemErr('Pas de connexion à Gemini (Internet coupé ?).',String(e))}
-   if(r.ok){onInfo&&onInfo(gc.thinkingConfig?JSON.stringify(gc.thinkingConfig).replace(/[{}"]/g,''):'réflexion par défaut');
+   if(r.ok){if(!light&&ok[model]!==vi){ok[model]=vi;saveSettings()}
+    onInfo&&onInfo(gc.thinkingConfig?JSON.stringify(gc.thinkingConfig).replace(/[{}"]/g,''):'réflexion par défaut');
     if(light){try{data=await r.json()}catch(_){}return data}
     return await readStream(r,onText)}
    try{data=await r.json()}catch(_){}
    const m=(data.error&&data.error.message)||('HTTP '+r.status),st=(data.error&&data.error.status)||'';
    last={status:r.status,m,st,detail:`HTTP ${r.status} ${st} · modèle ${model} · ${prov=='vertex'?'Google Cloud':'AI Studio'} · ${m}`};
-   if(r.status>=500){await sleep(1500*(attempt+1));continue}
-   if(r.status==429&&attempt<2&&!/per day|PerDay|daily/i.test(m)){await sleep(6000*(attempt+1));continue}
+   if(r.status>=500){await waitAbortable(1500*(attempt+1),signal);continue}
+   if(r.status==429){const i=sent.indexOf(slot);if(i>=0)sent.splice(i,1); // refus non décompté
+    if(/per ?day|PerDay|daily/i.test(m))throw new GemErr('Quota du jour Gemini épuisé (offre gratuite). Réessayez demain, ou activez la facturation sur aistudio.google.com.',last.detail);
+    const lim=m.match(/limit:\s*(\d+)/);if(lim&&+lim[1]>0&&+lim[1]!=settings.rpm){settings.rpm=+lim[1];saveSettings()}
+    if(++q429<=6){const ms=retryDelay(data,m)*1000+700;onWait&&onWait(ms);await waitAbortable(ms,signal);attempt--;continue}}
    break}
   if(!last)continue;
   if(/API key|API_KEY|UNAUTHENTICATED|PERMISSION_DENIED/i.test(last.m+last.st)||last.status==401||last.status==403)throw new GemErr('Clé refusée par Google : '+last.m,last.detail);
@@ -355,9 +373,9 @@ async function imgB64(blob){
  const bm=await createImageBitmap(blob),k=Math.min(1,1024/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
  c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
  return c.toDataURL('image/jpeg',.82).split(',')[1]}
-async function gemini(blob,signal,onPartial,onInfo){
+async function gemini(blob,signal,onPartial,onInfo,onWait){
  let lastLen=0,lastT=0;
- const res=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal,{onInfo,onText:t=>{
+ const res=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal,{onInfo,onWait,onText:t=>{
   const now=Date.now();if(onPartial&&t.length-lastLen>40&&now-lastT>250){lastLen=t.length;lastT=now;const o=partialJSON(t);if(o)onPartial(o)}}});
  if(res.feedback)throw new GemErr('Gemini a refusé la photo ('+res.feedback.blockReason+').',JSON.stringify(res.feedback));
  const txt=res.text;if(!txt)throw new GemErr('Réponse vide de Gemini ('+(res.finish||'?')+').','');
@@ -518,7 +536,7 @@ function updBanner(){const p=plan,b=$('#banner');if(!p)return;let key='',html=''
  else if(!p.faces.length&&p.st=='todo'){key='todo';html='<span class="grow">Photo pas encore analysée.</span><button data-b="retry" class="pri">✨ Analyser</button><button data-b="manual">Placer à la main</button>'}
  if(!key){b.hidden=true;bnKey='';return}
  if(key!=bnKey){b.innerHTML=html;bnKey=key}b.hidden=false;
- const t=$('#bnT');if(t)t.textContent=Math.round((Date.now()-p.t0)/1000)+' s'}
+ const t=$('#bnT');if(t)t.textContent=p.wq>Date.now()?`· limite Google de ${settings.rpm||5} analyses/minute, reprise dans ${Math.ceil((p.wq-Date.now())/1000)} s`:Math.round((Date.now()-p.t0)/1000)+' s'}
 $('#banner').onclick=async e=>{const b=e.target.closest('[data-b]');if(!b)return;const p=plan,a=b.dataset.b;
  if(a=='cancel'){if(p.ac)p.ac.abort();else{p.st=p.faces.length?'done':'todo';refresh()}}
  if(a=='fast'){settings.model=bestFlash(settings.models);saveSettings();if(p.ac)p.ac.abort();setTimeout(()=>enqueue(p),60)}
