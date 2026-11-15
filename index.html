@@ -226,7 +226,7 @@ async function imgB64(blob){
  return c.toDataURL('image/jpeg',.85).split(',')[1]}
 const STUDIO=m=>`${API}/models/${encodeURIComponent(m)}:generateContent`;
 const VERTEX=m=>`https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(m)}:generateContent`;
-const provider=()=>settings.provider||(/^AQ\./.test(settings.key||'')?'vertex':'studio');
+const provider=()=>settings.provider||'studio';
 const JSON_HELP=`\n\nRéponds UNIQUEMENT avec un objet JSON (sans texte autour) de cette forme :
 {"faces":[{"name":"Pignon","shape":"pignon","width_cm":850,"height_cm":370,"ridge_height_cm":780,"ridge_x_cm":425,
 "openings":[{"label":"Fenêtre 1","kind":"fenetre","x_cm":120,"y_cm":100,"width_cm":120,"height_cm":130}],
@@ -575,7 +575,7 @@ function openSettings(after){afterSettings=after||null;$('#kKey').value=settings
 async function testKey(){const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');$('#kKey').value=key;
  if(!key){$('#kMsg').textContent='Collez votre clé.';return false}
  $('#kMsg').textContent='Vérification…';let e1='',e2='';
- if(!/^AQ\./.test(key)){try{const ms=await listModels(key);settings.models=ms;settings.provider='studio';
+ {try{const ms=await listModels(key);settings.models=ms;settings.provider='studio';
    const cur=$('#kModel').value.trim();fillModels(ms,cur&&ms.some(m=>m.id==cur)?cur:null);
    $('#kMsg').textContent='✓ Clé Google AI Studio valide ('+ms.length+' modèles). Les « Flash » sont rapides et dans l’offre gratuite, les « Pro » plus précis.';return true}
   catch(e){e1=e.message}}
@@ -583,7 +583,7 @@ async function testKey(){const key=$('#kKey').value.trim().replace(/^["']|["']$/
   await callGemini([{text:'Réponds juste OK.'}],undefined,{key,model,prov:'vertex',light:true});
   settings.provider='vertex';$('#kMsg').textContent='✓ Clé Google Cloud (Vertex AI) valide avec le modèle '+model+'.';return true}
  catch(e){e2=e.detail||e.message}
- $('#kMsg').textContent='✗ Google refuse cette clé.\nAI Studio : '+(e1||'non essayé')+'\nGoogle Cloud : '+e2+'\nVérifiez la clé (sans espace), ou enregistrez quand même pour voir l’erreur exacte lors d’une analyse.';return false}
+ $('#kMsg').textContent='✗ Google refuse cette clé.\nAI Studio : '+e1+'\nGoogle Cloud : '+e2+'\nVérifiez la clé (sans espace), ou enregistrez quand même pour voir l’erreur exacte lors d’une analyse.';return false}
 $('#kTest').onclick=testKey;
 $('#kCancel').onclick=()=>{$('#dSet').close();afterSettings=null};
 $('#kOk').onclick=async()=>{const key=$('#kKey').value.trim().replace(/^["']|["']$/g,'');
