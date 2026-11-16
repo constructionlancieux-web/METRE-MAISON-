@@ -78,7 +78,7 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 
 <!-- ===== DOSSIERS ===== -->
 <section id="home" class="screen">
- <div class="bar"><h1>📐 Métré photo <small>version 8</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
+ <div class="bar"><h1>📐 Métré photo <small>version 9</small></h1><button id="hSet">⚙ Clé Gemini</button></div>
  <div class="acts"><button id="hNew" class="big pri">＋ Nouveau dossier client</button></div>
  <p class="info" id="hInfo"></p>
  <div id="folders" class="grid"></div>
@@ -129,7 +129,7 @@ dialog .act{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-w
 </section>
 
 <dialog id="dSet">
- <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 8)</small></h2>
+ <h2>Clé API Gemini <small style="font-size:12px;color:var(--mu);font-weight:400">(version 9)</small></h2>
  <p>L’analyse des photos se fait avec l’IA Gemini de Google. Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> puis collez-la ici. Elle reste enregistrée sur cet appareil uniquement.</p>
  <p>Offre gratuite : nombre d’analyses limité par minute et par jour, et Google peut utiliser les photos envoyées pour améliorer ses services.</p>
  <label for="kKey">Clé API</label><input id="kKey" type="password" placeholder="AIza… ou AQ.…" autocomplete="off">
@@ -243,20 +243,35 @@ async function addPhotos(files){
 
 /* ================= analyses en parallèle ================= */
 const queue=[],running=new Set(),MAXC=2;
+// jour du quota Google (remise à zéro à minuit heure du Pacifique)
+const quotaDay=()=>new Date(Date.now()-8*3600e3).toISOString().slice(0,10);
+// modèle à utiliser : celui choisi, sinon un autre Flash dont le quota du jour n'est pas épuisé
+function pickModel(exclude=new Set()){
+ const dead=settings.dead||{},today=quotaDay(),ok=m=>m&&!exclude.has(m)&&dead[m]!=today;
+ const main=settings.model||DEFAULT_MODEL;if(ok(main))return main;
+ const ids=(settings.models||[]).map(x=>x.id),cands=[...ids.filter(i=>/flash/.test(i)&&!/lite/.test(i)),...ids.filter(i=>/flash-lite/.test(i)),DEFAULT_MODEL,'gemini-2.5-flash-lite'];
+ return cands.find(ok)||null}
 function enqueue(p){if(p.st=='run'||p.st=='wait')return;p.st='wait';p.err=null;queue.push(p);refresh();pump()}
 function pump(){while(running.size<MAXC&&queue.length){const p=queue.shift();if(p.st=='wait')runAnalysis(p)}}
 async function runAnalysis(p){
  if(!settings.key){p.st='todo';refresh();return}
  running.add(p);p.st='run';p.t0=Date.now();p.wq=0;p.ac=new AbortController();
  const prevFaces=p.faces,prevVals=p.faces.map(f=>f.vals);p.faces=[];refresh();
- const model=settings.model||DEFAULT_MODEL;let info='';
+ let model=pickModel(),info='';
  const apply=o=>{const fs=sanitize(o);fs.forEach((f,i)=>{const old=p.faces[i]||{};f.vals=old.vals||prevVals[i]||{}});p.faces=fs;
   if(plan===p){if(!sel||!allDims(p).some(d=>d.key==sel)){const d=allDims(p).find(x=>!x.v);sel=d&&d.key}render()}};
  try{
-  const out=await gemini(p.blob,p.ac.signal,o=>{if(p.st=='run')apply(o)},i=>{info=i;p.wq=0},ms=>{p.wq=Date.now()+ms;refresh()});
+  let out;const tried=new Set();
+  for(;;){tried.add(model);p.model=model;
+   try{out=await gemini(p.blob,p.ac.signal,o=>{if(p.st=='run')apply(o)},i=>{info=i;p.wq=0},ms=>{p.wq=Date.now()+ms;refresh()},model);break}
+   catch(e){if(!e.quota)throw e;
+    if(e.quota=='day'){settings.dead=settings.dead||{};settings.dead[model]=quotaDay();saveSettings()}
+    const alt=pickModel(tried);
+    if(!alt){e.message='Quota gratuit de Gemini épuisé'+(e.quota=='day'?' pour aujourd’hui sur tous vos modèles Flash. Il se recharge chaque jour vers 9 h (heure de Paris). Pour ne plus être limité : activer la facturation sur aistudio.google.com (quelques centimes par photo).':' pour le moment. Réessayez dans une minute.');throw e}
+    toast(`Quota de ${model} atteint : passage à ${alt}`,4000);model=alt}}
   apply(out);if(!p.faces.length)throw new GemErr('Aucune façade reconnue sur cette photo.','');
   p.st='done';p.done=true;save(p);
-  if(plan===p)toast(`${allDims(p).length} cotes placées en ${Math.round((Date.now()-p.t0)/1000)} s (${model}, ${info})`,3500);
+  if(plan===p)toast(`${allDims(p).length} cotes placées en ${Math.round((Date.now()-p.t0)/1000)} s (${model})`,3500);
  }catch(e){
   if(!p.faces.length)p.faces=prevFaces;
   if(e.name=='AbortError')p.st=p.faces.length?'done':'todo';
@@ -349,14 +364,16 @@ async function callGemini(parts,signal,{key=settings.key,model=settings.model||D
    last={status:r.status,m,st,detail:`HTTP ${r.status} ${st} · modèle ${model} · ${prov=='vertex'?'Google Cloud':'AI Studio'} · ${m}`};
    if(r.status>=500){await waitAbortable(1500*(attempt+1),signal);continue}
    if(r.status==429){const i=sent.indexOf(slot);if(i>=0)sent.splice(i,1); // refus non décompté
-    if(/per ?day|PerDay|daily/i.test(m))throw new GemErr('Quota du jour Gemini épuisé (offre gratuite). Réessayez demain, ou activez la facturation sur aistudio.google.com.',last.detail);
+    const all=m+' '+JSON.stringify((data.error&&data.error.details)||[]);
+    if(/per ?day|PerDay|daily/i.test(all)){const e=new GemErr('Quota du jour épuisé pour '+model+'.',last.detail);e.quota='day';throw e}
+    if(/limit:\s*0\b/.test(m)){const e=new GemErr(model+' n’est pas disponible sur l’offre gratuite.',last.detail);e.quota='day';throw e}
     const lim=m.match(/limit:\s*(\d+)/);if(lim&&+lim[1]>0&&+lim[1]!=settings.rpm){settings.rpm=+lim[1];saveSettings()}
     if(++q429<=6){const ms=retryDelay(data,m)*1000+700;onWait&&onWait(ms);await waitAbortable(ms,signal);attempt--;continue}}
    break}
   if(!last)continue;
   if(/API key|API_KEY|UNAUTHENTICATED|PERMISSION_DENIED/i.test(last.m+last.st)||last.status==401||last.status==403)throw new GemErr('Clé refusée par Google : '+last.m,last.detail);
   if(last.status==404)throw new GemErr('Modèle « '+model+' » introuvable avec cette clé. Corrigez le nom du modèle dans ⚙.',last.detail);
-  if(last.status==429)throw new GemErr('Quota Gemini dépassé : '+last.m,last.detail);
+  if(last.status==429){const e=new GemErr('Quota Gemini dépassé pour '+model+' : '+last.m,last.detail);e.quota='min';throw e}
   if(last.status!=400)throw new GemErr('Gemini : '+last.m,last.detail);
  }
  throw new GemErr('Gemini : '+(last?last.m:'erreur inconnue'),last&&last.detail)}
@@ -373,9 +390,9 @@ async function imgB64(blob){
  const bm=await createImageBitmap(blob),k=Math.min(1,1024/Math.max(bm.width,bm.height)),c=document.createElement('canvas');
  c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
  return c.toDataURL('image/jpeg',.82).split(',')[1]}
-async function gemini(blob,signal,onPartial,onInfo,onWait){
+async function gemini(blob,signal,onPartial,onInfo,onWait,model){
  let lastLen=0,lastT=0;
- const res=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal,{onInfo,onWait,onText:t=>{
+ const res=await callGemini([{inlineData:{mimeType:'image/jpeg',data:await imgB64(blob)}},{text:PROMPT}],signal,{model:model||settings.model||DEFAULT_MODEL,onInfo,onWait,onText:t=>{
   const now=Date.now();if(onPartial&&t.length-lastLen>40&&now-lastT>250){lastLen=t.length;lastT=now;const o=partialJSON(t);if(o)onPartial(o)}}});
  if(res.feedback)throw new GemErr('Gemini a refusé la photo ('+res.feedback.blockReason+').',JSON.stringify(res.feedback));
  const txt=res.text;if(!txt)throw new GemErr('Réponse vide de Gemini ('+(res.finish||'?')+').','');
@@ -531,7 +548,7 @@ $('#pNext').onclick=()=>{const ps=photosOf(folder),i=ps.indexOf(plan);if(i<ps.le
 let bnKey='';
 function updBanner(){const p=plan,b=$('#banner');if(!p)return;let key='',html='';
  const model=settings.model||DEFAULT_MODEL,slow=isSlowModel(model)&&bestFlash(settings.models);
- if(p.st=='run'||p.st=='wait'){key='run'+p.st+slow;html=`<div class="spin"></div><span class="grow">${p.st=='wait'?'En attente (d’autres photos sont en cours d’analyse)…':'Gemini pose les flèches… <b id="bnT"></b>'} <small style="color:#aaa">${esc(model)}</small></span>${slow?'<button data-b="fast" class="pri">⚡ Passer en Flash</button>':''}<button data-b="cancel">Annuler</button>`}
+ if(p.st=='run'||p.st=='wait'){key='run'+p.st+slow;html=`<div class="spin"></div><span class="grow">${p.st=='wait'?'En attente (d’autres photos sont en cours d’analyse)…':'Gemini pose les flèches… <b id="bnT"></b>'} <small style="color:#aaa">${esc(p.model||model)}</small></span>${slow?'<button data-b="fast" class="pri">⚡ Passer en Flash</button>':''}<button data-b="cancel">Annuler</button>`}
  else if(p.st=='err'){key='err'+p.errTxt;const e=p.err||{};html=`<span class="grow"><b>L’analyse n’a pas abouti.</b></span><button data-b="retry" class="pri">Réessayer</button><button data-b="manual">Placer à la main</button><button data-b="set">⚙</button><button data-b="copy">Copier le détail</button><pre>${esc(e.message||'')}${e.detail&&e.detail!=e.message?'\n'+esc(e.detail):''}</pre>`}
  else if(!p.faces.length&&p.st=='todo'){key='todo';html='<span class="grow">Photo pas encore analysée.</span><button data-b="retry" class="pri">✨ Analyser</button><button data-b="manual">Placer à la main</button>'}
  if(!key){b.hidden=true;bnKey='';return}
